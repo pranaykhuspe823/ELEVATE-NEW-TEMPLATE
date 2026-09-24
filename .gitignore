@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Build output
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# User-uploaded content (PII - resumes, avatars)
+storage/avatars/*
+storage/resumes/*
+!storage/avatars/.gitkeep
+!storage/resumes/.gitkeep
+
+# Prisma
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3

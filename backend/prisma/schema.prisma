@@ -1,0 +1,365 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  googleId  String?   @unique
+  name      String?
+  avatarUrl String?
+  createdAt DateTime  @default(now())
+  resumes   Resume[]
+
+  // STUDENT (default) | FACULTY | COLLEGE_ADMIN. Students sign in with
+  // Google; faculty and college admins sign in with an email/password
+  // registered via /api/auth/faculty/register (gated by FACULTY_INVITE_CODE,
+  // or pre-provisioned by a college admin) -- these are separate credential
+  // systems from Google entirely.
+  role      String   @default("STUDENT")
+
+  // Faculty/COLLEGE_ADMIN-only: password for the email/password login
+  // (bcrypt hash). Null for STUDENT accounts, which authenticate via Google
+  // instead.
+  passwordHash String?
+
+  // COLLEGE_ADMIN-only: set once they click the activation link emailed at
+  // registration (see /api/colleges/register, /api/colleges/activate).
+  // Login is refused until this is set.
+  emailVerifiedAt            DateTime?
+  emailVerificationToken     String?   @unique
+  emailVerificationExpiresAt DateTime?
+
+  // Faculty-only: a short shareable code students enter to link themselves
+  // to this faculty member. Generated at faculty registration.
+  facultyCode String? @unique
+
+  // Student-only: which faculty this student is linked to (set via
+  // /api/students/me/join-faculty). Null until the student joins one.
+  facultyId String?
+  faculty   User?    @relation("FacultyStudents", fields: [facultyId], references: [id])
+  students  User[]   @relation("FacultyStudents")
+
+  // Faculty/COLLEGE_ADMIN-only: which college this account belongs to. Set
+  // on the admin at /api/colleges/register, and on faculty when a college
+  // admin provisions them at /api/colleges/faculty.
+  collegeId String?
+  college   College? @relation("CollegeMembers", fields: [collegeId], references: [id])
+
+  // Set only on the one User who registered a given college.
+  adminOfCollege College? @relation("CollegeAdmin")
+
+  studentAssignments CourseAssignment[] @relation("StudentAssignments")
+  facultyAssignments CourseAssignment[] @relation("FacultyAssignments")
+
+  weakTopicsOnStudent FacultyWeakTopic[] @relation("StudentFacultyWeakTopics")
+  weakTopicsAdded     FacultyWeakTopic[] @relation("FacultyAddedWeakTopics")
+
+  @@map("users")
+}
+
+// A college/institute that has registered as a Training & Placement Officer
+// (TPO) account. One admin User per college; that admin provisions faculty
+// seats up to their Subscription's limit.
+model College {
+  id        String   @id @default(uuid())
+  name      String
+  domain    String? // informational only, not used for auth/matching
+  createdAt DateTime @default(now())
+
+  // Captured at signup, purely to pre-highlight a plan on the subscribe
+  // page -- not a commitment, just a hint at what they said they wanted.
+  interestedPlanKey String?
+  signupNotes       String?
+  adminPhone        String?
+
+  adminId String @unique
+  admin   User   @relation("CollegeAdmin", fields: [adminId], references: [id])
+
+  members      User[]        @relation("CollegeMembers")
+  subscription Subscription?
+  drives       CampusDrive[]
+
+  @@map("colleges")
+}
+
+// A company visiting (or that has visited) a college's campus, with the job
+// description the TPO pasted in and the skills it requires. Students in the
+// college are matched against `skillsJson`.
+model CampusDrive {
+  id          String    @id @default(uuid())
+  collegeId   String
+  college     College   @relation(fields: [collegeId], references: [id])
+  companyName String
+  roleTitle   String
+  description String // the job description, as pasted by the TPO
+  skillsJson  String    @default("[]") // required skills (JSON string[]), extracted then edited by the TPO
+  driveDate   DateTime?
+  location    String?
+  ctc         String? // free text, e.g. "6-8 LPA"
+  status      String    @default("upcoming") // upcoming | completed
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  fits DriveFit[]
+
+  @@map("campus_drives")
+}
+
+// A student resume's match against one drive. The score is cheap and
+// deterministic; `tipsJson` (LLM advice) is only generated when the student
+// asks. Recomputed if the drive is edited (driveUpdatedAt) or the student
+// uploads a new resume (a new resumeId).
+model DriveFit {
+  id             String      @id @default(uuid())
+  driveId        String
+  drive          CampusDrive @relation(fields: [driveId], references: [id], onDelete: Cascade)
+  resumeId       String
+  resume         Resume      @relation(fields: [resumeId], references: [id])
+  score          Int
+  matchedJson    String      @default("[]")
+  missingJson    String      @default("[]")
+  tipsJson       String?
+  driveUpdatedAt DateTime
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@unique([driveId, resumeId])
+  @@map("drive_fits")
+}
+
+// One-to-one with College. No real payment gateway is wired in -- see the
+// TODO at POST /api/colleges/subscribe for where that would plug in.
+model Subscription {
+  id        String   @id @default(uuid())
+  collegeId String   @unique
+  college   College  @relation(fields: [collegeId], references: [id])
+
+  planKey      String
+  // Stored: trialing | active | cancelled. The time-based phases (grace,
+  // expired) are computed from the dates below -- see services/subscription.ts.
+  status       String    @default("pending")
+  facultySeats Int // snapshot of the plan's seat limit at subscribe time
+  activatedAt  DateTime? // when the subscription started (trial start, or first payment)
+  createdAt    DateTime  @default(now())
+
+  // Free trial end. Null on subscriptions that predate trials.
+  trialEndsAt DateTime?
+  // Set when the college pays; the 1-year term runs paidAt -> termEndsAt.
+  paidAt      DateTime?
+  termEndsAt  DateTime?
+
+  @@map("subscriptions")
+}
+
+model Resume {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  filename      String
+  rawFilePath   String
+  parsedJson    String? // JSON blob: contact, summary, skills, experience, education, projects, certifications
+  version       Int      @default(1)
+  uploadedAt    DateTime @default(now())
+  status        String   @default("pending") // pending | processing | ready | failed
+  processingError String?
+
+  // Highest similarity (0-1) to any other student's resume, set by the
+  // plagiarism check. Null = not checked yet (e.g. uploaded before the check existed).
+  plagiarismScore Float?
+
+  analyses         Analysis[]
+  atsScores        AtsScore[]
+  fixSuggestions   FixSuggestion[]
+  tests            Test[]
+  interviews       Interview[]
+  plagiarismChecksAsSource PlagiarismCheck[] @relation("PlagiarismSource")
+  plagiarismChecksAsMatch  PlagiarismCheck[] @relation("PlagiarismMatch")
+  driveFits                DriveFit[]
+
+  @@map("resumes")
+}
+
+model Analysis {
+  id             String   @id @default(uuid())
+  resumeId       String
+  resume         Resume   @relation(fields: [resumeId], references: [id])
+  detectedField  String
+  secondaryFields String  // JSON array
+  seniority      String
+  confidence     Float
+  reasoning      String
+  createdAt      DateTime @default(now())
+
+  @@map("analyses")
+}
+
+model AtsScore {
+  id               String   @id @default(uuid())
+  resumeId         String
+  resume           Resume   @relation(fields: [resumeId], references: [id])
+  totalScore       Int
+  formattingScore  Int
+  keywordScore     Int
+  impactScore      Int
+  structureScore   Int
+  breakdownJson    String // detailed sub-checks, matched/missing keywords, etc.
+  createdAt        DateTime @default(now())
+
+  @@map("ats_scores")
+}
+
+// Student-vs-student resume similarity, computed right after a resume is
+// parsed. `source` is "internal" (shingled-ngram similarity against other
+// resumes in the DB) for now, with room for a "web" row per resume once a
+// real plagiarism-detection API is wired in (see externalPlagiarismCheck.ts).
+model PlagiarismCheck {
+  id              String   @id @default(uuid())
+  resumeId        String
+  resume          Resume   @relation("PlagiarismSource", fields: [resumeId], references: [id])
+  matchedResumeId String
+  matchedResume   Resume   @relation("PlagiarismMatch", fields: [matchedResumeId], references: [id])
+  similarityScore Float
+  explanation     String? // LLM-generated, only populated for flagged pairs
+  overlapJson     String? // [{yours, theirs, similarity}] closest matching bullet pairs
+  reviewStatus    String   @default("open") // open | cleared (false positive) | confirmed -- set by faculty
+  facultyNote     String?
+  source          String   @default("internal") // internal | web
+  createdAt       DateTime @default(now())
+
+  @@map("plagiarism_checks")
+}
+
+// A weak topic a faculty member has flagged on a student themself, on top of
+// the ones computed from that student's latest completed test.
+model FacultyWeakTopic {
+  id        String   @id @default(uuid())
+  studentId String
+  student   User     @relation("StudentFacultyWeakTopics", fields: [studentId], references: [id])
+  addedById String
+  addedBy   User     @relation("FacultyAddedWeakTopics", fields: [addedById], references: [id])
+  topic     String
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@map("faculty_weak_topics")
+}
+
+model FixSuggestion {
+  id             String   @id @default(uuid())
+  resumeId       String
+  resume         Resume   @relation(fields: [resumeId], references: [id])
+  section        String
+  originalText   String
+  suggestedText  String
+  accepted       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@map("fix_suggestions")
+}
+
+model Test {
+  id            String   @id @default(uuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id])
+  questionsJson String // array of {id, topic, question, options, correctIndex|rubric, type}
+  createdAt     DateTime @default(now())
+
+  attempts TestAttempt[]
+
+  @@map("tests")
+}
+
+model TestAttempt {
+  id                 String    @id @default(uuid())
+  testId             String
+  test               Test      @relation(fields: [testId], references: [id])
+  answersJson        String? // {questionId: answerIndex|answerText}
+  score              Float?
+  topicBreakdownJson String? // {topic: {correct, total, label}}
+  startedAt          DateTime  @default(now())
+  completedAt        DateTime?
+
+  coursePlans CoursePlan[]
+
+  @@map("test_attempts")
+}
+
+model CoursePlan {
+  id            String   @id @default(uuid())
+  testAttemptId String
+  testAttempt   TestAttempt @relation(fields: [testAttemptId], references: [id])
+  modulesJson   String // snapshot of module list at generation time
+  createdAt     DateTime @default(now())
+
+  modules CourseModule[]
+
+  @@map("course_plans")
+}
+
+model Interview {
+  id                     String    @id @default(uuid())
+  resumeId               String
+  resume                 Resume    @relation(fields: [resumeId], references: [id])
+  targetRole             String?
+  transcriptJson         String // array of {role: "interviewer"|"candidate", text}
+  keywordsJson           String    @default("[]") // ranked interview-worthy keywords extracted from the resume once at start
+  status                 String    @default("in_progress") // in_progress | completed
+  overallScore           Float?
+  communicationScore     Float?
+  technicalDepthScore    Float?
+  resumeConsistencyScore Float?
+  confidenceScore        Float?
+  feedbackJson           String? // {strengths[], weaknesses[], redFlags[]}
+  recommendation         String? // Strong Hire | Hire | Lean Hire | No Hire
+  recommendationReason   String?
+  detailedFeedback       String?
+  startedAt              DateTime  @default(now())
+  completedAt            DateTime?
+
+  @@map("interviews")
+}
+
+model CourseModule {
+  id              String     @id @default(uuid())
+  coursePlanId    String
+  coursePlan      CoursePlan @relation(fields: [coursePlanId], references: [id])
+  title           String
+  topic           String
+  priority        String // high | medium | low
+  estimatedHours  Float
+  resourcesJson   String // array of {title, url, type}
+  completed       Boolean    @default(false)
+
+  @@map("course_modules")
+}
+
+// A course a faculty member has put in front of a specific student -- either
+// picked from that student's AI-suggested CourseModules (sourceModuleId set,
+// for traceability) or written from scratch by the faculty member. Kept
+// independent of CoursePlan/TestAttempt so faculty can assign work even to a
+// student who hasn't completed (or ever taken) a test yet.
+model CourseAssignment {
+  id             String    @id @default(uuid())
+  studentId      String
+  student        User      @relation("StudentAssignments", fields: [studentId], references: [id])
+  assignedById   String
+  assignedBy     User      @relation("FacultyAssignments", fields: [assignedById], references: [id])
+  sourceModuleId String? // AI-suggested CourseModule this was copied from, if any
+  title          String
+  topic          String
+  priority       String    @default("medium") // high | medium | low
+  estimatedHours Float     @default(2)
+  resourcesJson  String    @default("[]")
+  reason         String? // faculty's note on why this was assigned
+  status         String    @default("assigned") // assigned | in_progress | completed
+  createdAt      DateTime  @default(now())
+  completedAt    DateTime?
+
+  @@map("course_assignments")
+}

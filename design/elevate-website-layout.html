@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Elevate — website layout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12141c; --surface:#1b1e29; --card:#20242f; --card-2:#262b38;
+    --border:#2b303f; --border-strong:#3a4054;
+    --text:#eceef4; --text-2:#9599ab; --text-3:#666c82;
+    --lime:#c8ff4d; --lime-dim:#8fb636;
+    --amber:#ffb84d; --coral:#ff7a5c; --teal:#4de0b0; --red:#ff6b6b;
+    --font-d:'Space Grotesk',sans-serif; --font-b:'Inter',sans-serif; --font-m:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-b);}
+  .shell{max-width:1180px;margin:0 auto;padding:0 32px 80px;}
+  .tabbar{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .tabbar .brand{font-family:var(--font-d);font-weight:700;font-size:15px;letter-spacing:0.02em;margin-right:16px;display:flex;align-items:center;gap:8px;}
+  .brand .dot{width:8px;height:8px;background:var(--lime);border-radius:50%;}
+  .tab{font-family:var(--font-m);font-size:12px;color:var(--text-2);background:transparent;border:1px solid var(--border);padding:8px 14px;border-radius:20px;cursor:pointer;letter-spacing:0.02em;}
+  .tab.active{color:var(--bg);background:var(--lime);border-color:var(--lime);font-weight:500;}
+  .page{display:none;padding-top:40px;}
+  .page.active{display:block;}
+  .eyebrow{font-family:var(--font-m);font-size:11px;color:var(--lime);letter-spacing:0.12em;text-transform:uppercase;margin:0 0 10px;}
+  h1{font-family:var(--font-d);font-size:40px;font-weight:700;line-height:1.1;margin:0 0 14px;}
+  h2{font-family:var(--font-d);font-size:20px;font-weight:500;margin:0 0 4px;}
+  p.sub{color:var(--text-2);font-size:15px;line-height:1.6;max-width:520px;margin:0 0 32px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;}
+  .btn{font-family:var(--font-b);font-weight:500;font-size:14px;padding:12px 22px;border-radius:8px;border:1px solid var(--border-strong);background:var(--card-2);color:var(--text);cursor:pointer;}
+  .btn.primary{background:var(--lime);color:#12141c;border-color:var(--lime);}
+  .btn.small{padding:8px 14px;font-size:12px;}
+  .row{display:flex;gap:20px;}
+  .col{flex:1;min-width:0;}
+  .navmock{display:flex;justify-content:space-between;align-items:center;padding-bottom:28px;border-bottom:1px solid var(--border);margin-bottom:40px;}
+  .navmock .links{display:flex;gap:26px;font-size:13px;color:var(--text-2);}
+  .pill{font-family:var(--font-m);font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--border-strong);color:var(--text-2);}
+
+  /* Page 1: Upload */
+  .dropzone{border:1.5px dashed var(--border-strong);border-radius:16px;padding:48px;text-align:center;background:var(--surface);}
+  .dropzone .icon{width:40px;height:40px;margin:0 auto 16px;border-radius:10px;background:var(--card-2);display:flex;align-items:center;justify-content:center;font-family:var(--font-m);color:var(--lime);font-size:18px;}
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px;}
+  .feat{padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;}
+  .feat .num{font-family:var(--font-m);font-size:12px;color:var(--text-3);margin-bottom:10px;}
+
+  /* Page 2: Analysis */
+  .gauge-wrap{display:flex;flex-direction:column;align-items:center;padding:20px 0;}
+  .gauge-score{font-family:var(--font-d);font-size:52px;font-weight:700;margin-top:-72px;}
+  .gauge-label{font-size:12px;color:var(--text-2);}
+  .bar-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .bar-row .lbl{width:110px;font-size:12px;color:var(--text-2);}
+  .bar-track{flex:1;height:6px;background:var(--card-2);border-radius:4px;overflow:hidden;}
+  .bar-fill{height:100%;background:var(--lime);}
+  .bar-row .val{width:34px;text-align:right;font-family:var(--font-m);font-size:12px;}
+  .tag{display:inline-block;font-family:var(--font-m);font-size:11px;padding:4px 10px;border-radius:6px;background:var(--card-2);color:var(--teal);border:1px solid var(--border-strong);margin:0 6px 6px 0;}
+  .diff-line{font-family:var(--font-m);font-size:12.5px;padding:8px 12px;border-radius:6px;margin-bottom:6px;line-height:1.6;}
+  .diff-old{background:rgba(255,107,107,0.08);color:var(--coral);text-decoration:line-through;opacity:0.7;}
+  .diff-new{background:rgba(200,255,77,0.08);color:var(--lime);}
+
+  /* Page 3: Test */
+  .progress-top{display:flex;align-items:center;gap:14px;margin-bottom:36px;}
+  .progress-track{flex:1;height:4px;background:var(--card-2);border-radius:4px;overflow:hidden;}
+  .progress-fill{height:100%;width:40%;background:var(--amber);}
+  .qcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;}
+  .opt{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-size:14px;}
+  .opt .radio{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--border-strong);flex-shrink:0;}
+  .opt.selected{border-color:var(--lime);}
+  .opt.selected .radio{border-color:var(--lime);background:var(--lime);}
+
+  /* Page 4: Results */
+  .weak-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);}
+  .weak-row:last-child{border-bottom:none;}
+  .sev{font-family:var(--font-m);font-size:11px;padding:3px 10px;border-radius:20px;}
+  .sev.weak{background:rgba(255,107,107,0.12);color:var(--red);}
+  .sev.mid{background:rgba(255,184,77,0.12);color:var(--amber);}
+  .sev.strong{background:rgba(77,224,176,0.12);color:var(--teal);}
+
+  /* Page 5: Course plan */
+  .module{display:flex;gap:16px;padding:18px 0;border-bottom:1px solid var(--border);}
+  .module:last-child{border-bottom:none;}
+  .checkbox{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--border-strong);flex-shrink:0;margin-top:2px;}
+  .checkbox.done{background:var(--lime);border-color:var(--lime);}
+  .module .meta{font-family:var(--font-m);font-size:11px;color:var(--text-3);margin-top:6px;}
+</style>
+</head>
+<body>
+
+<div class="tabbar">
+  <div class="brand"><span class="dot"></span>Elevate — page map</div>
+  <button class="tab active" data-p="p1">01 Upload</button>
+  <button class="tab" data-p="p2">02 Analysis + ATS</button>
+  <button class="tab" data-p="p3">03 Skill test</button>
+  <button class="tab" data-p="p4">04 Test results</button>
+  <button class="tab" data-p="p5">05 Course plan</button>
+</div>
+
+<div class="shell">
+
+<!-- PAGE 1: LANDING / UPLOAD -->
+<div class="page active" id="p1">
+  <div class="navmock">
+    <div class="brand"><span class="dot"></span>Elevate</div>
+    <div class="links"><span>How it works</span><span>Pricing</span><span>Log in</span></div>
+  </div>
+  <p class="eyebrow">Resume intelligence</p>
+  <h1>Find out what your<br>resume actually says.</h1>
+  <p class="sub">Upload once. Get a real ATS score, a field match, a skill test built from your own resume, and a plan to close the gaps.</p>
+  <div class="dropzone">
+    <div class="icon">↑</div>
+    <div style="font-size:15px;margin-bottom:6px;">Drop your resume here</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:20px;">PDF or DOCX, up to 10MB</div>
+    <button class="btn primary">Browse files</button>
+  </div>
+  <div class="feat-grid">
+    <div class="feat"><div class="num">01</div><h2>Deep analysis</h2><p class="sub" style="font-size:13px;margin:6px 0 0;">Detects your field, seniority, and skill set from the resume itself.</p></div>
+    <div class="feat"><div class="num">02</div><h2>ATS score</h2><p class="sub" style="font-size:13px;margin:6px 0 0;">A scored breakdown, not a guess — formatting, keywords, impact.</p></div>
+    <div class="feat"><div class="num">03</div><h2>Skill test + plan</h2><p class="sub" style="font-size:13px;margin:6px 0 0;">A test built from your resume, then a course plan for what's weak.</p></div>
+  </div>
+</div>
+
+<!-- PAGE 2: ANALYSIS + ATS -->
+<div class="page" id="p2">
+  <div class="navmock">
+    <div class="brand"><span class="dot"></span>Elevate</div>
+    <div style="font-size:12px;color:var(--text-2);">resume_aniket_v3.pdf · <span style="color:var(--lime);">Re-upload</span></div>
+  </div>
+  <div class="row" style="margin-bottom:20px;">
+    <div class="col card">
+      <p class="eyebrow">Detected field</p>
+      <h2 style="font-size:26px;">Full stack engineering</h2>
+      <p style="color:var(--text-2);font-size:13px;margin:6px 0 16px;">Confidence 91% · Mid-level</p>
+      <div class="tag">React</div><div class="tag">Node.js</div><div class="tag">AWS</div><div class="tag">LangChain</div>
+    </div>
+    <div class="col card" style="flex:0 0 260px;">
+      <div class="gauge-wrap">
+        <svg width="140" height="90" viewBox="0 0 140 90">
+          <path d="M10 80 A60 60 0 0 1 130 80" fill="none" stroke="#262b38" stroke-width="10"/>
+          <path d="M10 80 A60 60 0 0 1 110 30" fill="none" stroke="#c8ff4d" stroke-width="10" stroke-linecap="round"/>
+        </svg>
+        <div class="gauge-score">78</div>
+        <div class="gauge-label">ATS score / 100</div>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:20px;">
+    <h2 style="margin-bottom:18px;">Score breakdown</h2>
+    <div class="bar-row"><span class="lbl">Formatting</span><div class="bar-track"><div class="bar-fill" style="width:92%;"></div></div><span class="val">18/20</span></div>
+    <div class="bar-row"><span class="lbl">Keyword match</span><div class="bar-track"><div class="bar-fill" style="width:60%;background:var(--amber);"></div></div><span class="val">18/30</span></div>
+    <div class="bar-row"><span class="lbl">Impact/clarity</span><div class="bar-track"><div class="bar-fill" style="width:80%;"></div></div><span class="val">20/25</span></div>
+    <div class="bar-row"><span class="lbl">Structure</span><div class="bar-track"><div class="bar-fill" style="width:88%;"></div></div><span class="val">22/25</span></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2>Fix suggestions</h2>
+      <button class="btn small primary">Generate fixes</button>
+    </div>
+    <div class="diff-line diff-old">Responsible for backend development of internal tools</div>
+    <div class="diff-line diff-new">Built and shipped 4 internal tools used by 30+ engineers, cutting manual QA time by 25%</div>
+    <div style="text-align:right;margin-top:18px;"><button class="btn primary">Generate skill test →</button></div>
+  </div>
+</div>
+
+<!-- PAGE 3: TEST -->
+<div class="page" id="p3">
+  <div class="progress-top">
+    <span style="font-family:var(--font-m);font-size:12px;color:var(--text-2);">Question 4/10</span>
+    <div class="progress-track"><div class="progress-fill"></div></div>
+    <span style="font-family:var(--font-m);font-size:12px;color:var(--amber);">08:42</span>
+  </div>
+  <div class="row">
+    <div class="col" style="flex:0 0 180px;">
+      <p class="eyebrow">Topics</p>
+      <div class="tag" style="display:block;margin-bottom:8px;">System design</div>
+      <div class="tag" style="display:block;margin-bottom:8px;">SQL</div>
+      <div class="tag" style="display:block;margin-bottom:8px;">React internals</div>
+      <div class="tag" style="display:block;">AWS deployment</div>
+    </div>
+    <div class="col qcard">
+      <p class="eyebrow">System design</p>
+      <h2 style="font-size:20px;line-height:1.4;margin-bottom:24px;">What's the main tradeoff of adding a read replica to a Postgres database?</h2>
+      <div class="opt selected"><span class="radio"></span>Eventual consistency between primary and replica</div>
+      <div class="opt"><span class="radio"></span>Increased write latency on the primary</div>
+      <div class="opt"><span class="radio"></span>Loss of ACID guarantees entirely</div>
+      <div class="opt"><span class="radio"></span>No indexing support on replicas</div>
+      <div style="display:flex;justify-content:space-between;margin-top:28px;">
+        <button class="btn small">← Previous</button>
+        <button class="btn small primary">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 4: RESULTS -->
+<div class="page" id="p4">
+  <div class="row" style="margin-bottom:20px;">
+    <div class="col card">
+      <p class="eyebrow">Test complete</p>
+      <h1 style="font-size:44px;">7.2<span style="font-size:20px;color:var(--text-3);">/10</span></h1>
+      <p class="sub" style="margin-bottom:0;">Stronger than 64% of candidates in full stack engineering.</p>
+    </div>
+    <div class="col card" style="flex:0 0 220px;">
+      <p class="eyebrow">Time taken</p>
+      <h2 style="font-size:22px;">14 min 06s</h2>
+      <p style="color:var(--text-2);font-size:12px;">of 20 min limit</p>
+    </div>
+  </div>
+  <div class="card">
+    <h2 style="margin-bottom:6px;">By topic</h2>
+    <p class="sub" style="font-size:12px;margin-bottom:14px;">Weak areas carry over into your course plan.</p>
+    <div class="weak-row"><span>System design</span><span class="sev weak">Weak · 2/5</span></div>
+    <div class="weak-row"><span>SQL joins and indexing</span><span class="sev weak">Weak · 1/4</span></div>
+    <div class="weak-row"><span>React internals</span><span class="sev mid">Fair · 3/5</span></div>
+    <div class="weak-row"><span>AWS deployment</span><span class="sev strong">Strong · 6/6</span></div>
+  </div>
+  <div style="text-align:right;margin-top:20px;"><button class="btn primary">Build my course plan →</button></div>
+</div>
+
+<!-- PAGE 5: COURSE PLAN -->
+<div class="page" id="p5">
+  <div class="navmock" style="border:none;margin-bottom:20px;padding-bottom:0;">
+    <h1 style="font-size:28px;">Your course plan</h1>
+    <span class="pill">2 of 6 modules done</span>
+  </div>
+  <div class="progress-track" style="margin-bottom:30px;"><div class="progress-fill" style="width:33%;background:var(--lime);"></div></div>
+  <div class="card">
+    <div class="module">
+      <div class="checkbox done"></div>
+      <div class="col">
+        <h2>Database indexing fundamentals</h2>
+        <div class="meta">SQL · 2h estimated · Priority: high</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="checkbox done"></div>
+      <div class="col">
+        <h2>Query optimization and joins</h2>
+        <div class="meta">SQL · 1.5h estimated · Priority: high</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="checkbox"></div>
+      <div class="col">
+        <h2>System design: scaling reads</h2>
+        <div class="meta">System design · 3h estimated · Priority: high</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="checkbox"></div>
+      <div class="col">
+        <h2>Caching strategies and CDNs</h2>
+        <div class="meta">System design · 2h estimated · Priority: medium</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="checkbox"></div>
+      <div class="col">
+        <h2>React rendering and memoization</h2>
+        <div class="meta">React internals · 1.5h estimated · Priority: medium</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.p).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
