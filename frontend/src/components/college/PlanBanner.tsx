@@ -24,7 +24,7 @@ const TONES = {
 } as const;
 
 const ICON_TONES = {
-  gold: "bg-lime-ink/20 text-[#8a6410]",
+  gold: "bg-lime-ink/20 text-lime-ink",
   coral: "bg-coral/15 text-coral",
   navy: "bg-lime/10 text-lime",
 } as const;

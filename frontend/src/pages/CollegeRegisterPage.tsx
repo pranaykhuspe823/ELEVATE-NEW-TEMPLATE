@@ -88,7 +88,7 @@ function Field({
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#8a6410] pt-1">
+    <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-lime-ink pt-1">
       {children}
     </p>
   );
@@ -173,7 +173,7 @@ export default function CollegeRegisterPage() {
   if (result) {
     return (
       <div className="pt-10 pb-10 max-w-[600px] mx-auto">
-        <div className="card !p-7 sm:!p-9 shadow-[0_18px_40px_-24px_rgba(31,41,55,0.35)]">
+        <div className="card !p-7 sm:!p-9 shadow-lg">
           <span className="w-12 h-12 rounded-2xl bg-teal/10 text-teal flex items-center justify-center mb-5">
             <MailIcon width={24} height={24} />
           </span>
@@ -199,7 +199,7 @@ export default function CollegeRegisterPage() {
               Confirm your email
             </li>
             <li className="flex items-center gap-3 text-sm text-text-2">
-              <span className="w-6 h-6 rounded-full border-2 border-[#C4BAAB] text-xs flex items-center justify-center flex-none">
+              <span className="w-6 h-6 rounded-full border-2 border-border text-xs flex items-center justify-center flex-none">
                 3
               </span>
               Choose a plan and add faculty
@@ -208,7 +208,7 @@ export default function CollegeRegisterPage() {
 
           {result.devActivationLink && (
             <div className="mt-7 rounded-2xl border border-lime-ink/30 bg-lime-ink/10 p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#8a6410] mb-1.5">
+              <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-lime-ink mb-1.5">
                 Dev mode · no email provider connected yet
               </p>
               <p className="text-text-2 text-xs leading-relaxed mb-3">
@@ -231,18 +231,15 @@ export default function CollegeRegisterPage() {
   return (
     <div className="pt-8 pb-10">
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-8 xl:gap-12 items-start">
-        <aside className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-lime-dim via-lime to-[#2B4F91] text-white p-7 sm:p-9 shadow-[0_18px_40px_-20px_rgba(20,41,79,0.6)] lg:sticky lg:top-[100px]">
-          <div className="pointer-events-none absolute -right-20 -top-24 w-72 h-72 rounded-full bg-lime-ink/25 blur-3xl" />
-          <div className="pointer-events-none absolute -left-16 -bottom-28 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
-
+        <aside className="relative overflow-hidden rounded-[22px] border-2 border-border panel-gradient p-7 sm:p-9 shadow-lg lg:sticky lg:top-[100px]">
           <div className="relative">
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#E5B94E]">
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-lime">
               Training &amp; placement
             </p>
-            <h1 className="text-[30px] sm:text-[36px] leading-[1.15] text-white mt-2 mb-4">
+            <h1 className="text-[30px] sm:text-[36px] leading-[1.15] text-text mt-2 mb-4">
               Bring Elevate to your placement cell.
             </h1>
-            <p className="text-white/75 text-sm leading-relaxed max-w-[460px]">
+            <p className="text-text-2 text-sm leading-relaxed max-w-[460px]">
               Register your college, activate a plan, and start adding faculty
               seats — every student's ATS score, weak topics, and assigned
               courses in one place for your whole cell.
@@ -251,29 +248,29 @@ export default function CollegeRegisterPage() {
             <ul className="flex flex-col gap-4 mt-7">
               {BENEFITS.map((b) => (
                 <li key={b.text} className="flex items-start gap-3.5">
-                  <span className="flex-none w-9 h-9 rounded-xl bg-white/10 border border-white/15 text-[#E5B94E] flex items-center justify-center">
+                  <span className="flex-none w-9 h-9 rounded-xl bg-white border-2 border-border text-lime flex items-center justify-center">
                     {b.icon}
                   </span>
-                  <span className="text-sm text-white/85 leading-snug pt-1.5">
+                  <span className="text-sm text-text leading-snug pt-1.5">
                     {b.text}
                   </span>
                 </li>
               ))}
             </ul>
 
-            <div className="mt-8 pt-6 border-t border-white/15">
-              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-white/60 mb-4">
+            <div className="mt-8 pt-6 border-t border-border">
+              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-3 mb-4">
                 How it works
               </p>
               <ol className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
                 {steps.map((s, i) => (
                   <li key={s.title} className="flex xl:flex-col gap-3 xl:gap-2">
-                    <span className="flex-none w-7 h-7 rounded-full bg-[#E5B94E] text-lime-dim text-xs font-semibold flex items-center justify-center">
+                    <span className="flex-none w-7 h-7 rounded-full bg-[#FFC93C] text-lime-dim text-xs font-semibold flex items-center justify-center">
                       {i + 1}
                     </span>
                     <div>
-                      <p className="text-sm font-medium text-white">{s.title}</p>
-                      <p className="text-[13px] text-white/80 leading-snug mt-0.5">
+                      <p className="text-sm font-medium text-text">{s.title}</p>
+                      <p className="text-[13px] text-text-2 leading-snug mt-0.5">
                         {s.body}
                       </p>
                     </div>
@@ -284,7 +281,7 @@ export default function CollegeRegisterPage() {
           </div>
         </aside>
 
-        <div className="card !p-6 sm:!p-8 shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+        <div className="card !p-6 sm:!p-8">
           <h2 className="text-[22px] leading-tight mb-1">Register your college</h2>
           <p className="text-text-2 text-sm mb-6">
             Free to set up. You'll activate via email, then start a {trialText} —
@@ -425,7 +422,7 @@ export default function CollegeRegisterPage() {
                           className={`text-left rounded-2xl border p-4 transition ${
                             selected
                               ? "border-lime bg-lime/5 ring-2 ring-lime/15"
-                              : "border-[#C4BAAB] bg-white hover:border-lime/60"
+                              : "border-border bg-white hover:border-lime/60"
                           }`}
                         >
                           <div className="flex items-center justify-between gap-2">
@@ -436,7 +433,7 @@ export default function CollegeRegisterPage() {
                               className={`w-[18px] h-[18px] rounded-full flex items-center justify-center flex-none ${
                                 selected
                                   ? "bg-lime text-white"
-                                  : "border-2 border-[#A99E8E]"
+                                  : "border-2 border-border"
                               }`}
                             >
                               {selected && (

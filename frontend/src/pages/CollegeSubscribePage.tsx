@@ -209,7 +209,7 @@ export default function CollegeSubscribePage() {
               key={step.title}
               className="flex items-start gap-3 rounded-2xl border border-border bg-white px-4 py-3.5"
             >
-              <span className="flex-none w-7 h-7 rounded-full bg-lime-ink/25 text-[#8a6410] text-xs font-semibold flex items-center justify-center">
+              <span className="flex-none w-7 h-7 rounded-full bg-lime-ink/25 text-lime-ink text-xs font-semibold flex items-center justify-center">
                 {i + 1}
               </span>
               <div>
@@ -222,7 +222,7 @@ export default function CollegeSubscribePage() {
       )}
 
       {subscription && (
-        <section className="card !p-0 overflow-hidden mb-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+        <section className="card !p-0 overflow-hidden mb-5">
           <div className="grid md:grid-cols-[minmax(0,1fr)_320px]">
             <div className="p-5 sm:p-6">
               <div className="flex flex-wrap items-center gap-2.5 mb-3">

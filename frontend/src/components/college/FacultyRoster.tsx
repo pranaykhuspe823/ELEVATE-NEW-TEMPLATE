@@ -24,7 +24,7 @@ function CodeChip({ code }: { code: string }) {
       onClick={() => void copy()}
       title="Copy share code"
       aria-label={`Copy share code ${code}`}
-      className="inline-flex items-center gap-1.5 rounded-full border border-[#C4BAAB] bg-white px-3 py-1 font-mono text-[12px] tracking-wider hover:border-lime hover:text-lime transition"
+      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1 font-mono text-[12px] tracking-wider hover:border-lime hover:text-lime transition"
     >
       {code}
       {copied ? (
@@ -131,7 +131,7 @@ export default function FacultyRoster({
   onError: (message: string) => void;
 }) {
   return (
-    <section className="card shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+    <section className="card">
       <CardHeader
         icon={<UsersIcon width={18} height={18} />}
         title="Faculty roster"

@@ -121,27 +121,26 @@ export default function StudentDriveDetail() {
     <div className="pt-4">
       <BackLink />
 
-      <section className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-lime-dim via-lime to-[#2B4F91] text-white px-6 py-5 sm:px-7 shadow-[0_18px_40px_-20px_rgba(20,41,79,0.6)]">
-        <div className="pointer-events-none absolute -right-20 -top-24 w-72 h-72 rounded-full bg-lime-ink/25 blur-3xl" />
+      <section className="relative overflow-hidden rounded-[20px] border-2 border-border panel-gradient px-6 py-5 sm:px-7 shadow-lg">
         <div className="relative flex items-center gap-4 sm:gap-5">
-          <CompanyMark name={drive.companyName} size={56} onDark />
+          <CompanyMark name={drive.companyName} size={56} />
           <div className="flex-1 min-w-0">
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#E5B94E]">
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-lime">
               Campus drive
             </p>
-            <h1 className="text-[24px] sm:text-[28px] leading-tight text-white mt-0.5 break-words">
+            <h1 className="text-[24px] sm:text-[28px] leading-tight text-text mt-0.5 break-words">
               {drive.companyName}
             </h1>
-            <p className="text-white/85 text-sm mt-0.5 break-words">{drive.roleTitle}</p>
+            <p className="text-text-2 text-sm mt-0.5 break-words">{drive.roleTitle}</p>
             <div className="mt-2">
-              <DriveMeta drive={drive} onDark />
+              <DriveMeta drive={drive} />
             </div>
           </div>
-          {fit && <ScoreRing score={fit.score} size={92} dark label="% fit" />}
+          {fit && <ScoreRing score={fit.score} size={92} label="% fit" />}
         </div>
         {fit && (
-          <p className="relative mt-4 text-sm text-white/80 border-t border-white/15 pt-3">
-            <strong className="text-white">{FIT_LABEL[fitTone(fit.score)]}.</strong>{" "}
+          <p className="relative mt-4 text-sm text-text-2 border-t border-border pt-3">
+            <strong className="text-text">{FIT_LABEL[fitTone(fit.score)]}.</strong>{" "}
             {firstName ? `${firstName}, ` : ""}
             {verdict(fit.score).charAt(0).toLowerCase() + verdict(fit.score).slice(1)}
           </p>
@@ -162,7 +161,7 @@ export default function StudentDriveDetail() {
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px] items-start">
         <div className="flex flex-col gap-4 min-w-0">
-          <section className="card shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+          <section className="card">
             <CardHeader
               icon={<TargetIcon width={18} height={18} />}
               title="Skills they ask for"
@@ -203,7 +202,7 @@ export default function StudentDriveDetail() {
           </section>
 
           {fit && fit.missing.length > 0 && (
-            <section className="card shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+            <section className="card">
               <CardHeader
                 icon={<SparkIcon width={18} height={18} />}
                 title="Skills to build"
@@ -264,7 +263,7 @@ export default function StudentDriveDetail() {
           )}
 
           {tips && tips.resumeTips.length > 0 && (
-            <section className="card shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+            <section className="card">
               <CardHeader
                 icon={<SparkIcon width={18} height={18} />}
                 title={`Tune your resume for ${drive.companyName}`}
@@ -284,7 +283,7 @@ export default function StudentDriveDetail() {
           )}
         </div>
 
-        <aside className="card shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+        <aside className="card">
           <CardHeader title="Job description" subtitle={`${drive.roleTitle} · ${drive.companyName}`} dense />
           <p className="text-[13.5px] leading-relaxed whitespace-pre-line break-words">{jdText}</p>
           {longJd && (

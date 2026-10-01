@@ -339,6 +339,23 @@ model CourseModule {
   @@map("course_modules")
 }
 
+// A "schedule a demo" lead from the marketing landing page -- deliberately
+// not tied to a User/College, since the person filling it out hasn't signed
+// up for anything yet. Compare College.interestedPlanKey/signupNotes, which
+// are captured only once someone actually goes through full registration.
+model DemoRequest {
+  id        String   @id @default(uuid())
+  fullName  String
+  phone     String
+  company   String
+  email     String
+  planKey   String?
+  message   String?
+  createdAt DateTime @default(now())
+
+  @@map("demo_requests")
+}
+
 // A course a faculty member has put in front of a specific student -- either
 // picked from that student's AI-suggested CourseModules (sourceModuleId set,
 // for traceability) or written from scratch by the faculty member. Kept

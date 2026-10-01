@@ -13,6 +13,7 @@ import { assignmentsRouter } from "./routes/assignments";
 import { collegesRouter } from "./routes/colleges";
 import { profileRouter } from "./routes/profile";
 import { drivesRouter } from "./routes/drives";
+import { demoRequestsRouter } from "./routes/demoRequests";
 import { prisma } from "./lib/prisma";
 import { processResume } from "./services/resumeProcessing";
 
@@ -43,6 +44,7 @@ app.use("/api/assignments", assignmentsRouter);
 app.use("/api/colleges", collegesRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/drives", drivesRouter);
+app.use("/api/demo-requests", demoRequestsRouter);
 
 // A resume can be left in "processing" forever if the process restarts
 // mid-pipeline (the in-process job dies with it, nothing else updates the

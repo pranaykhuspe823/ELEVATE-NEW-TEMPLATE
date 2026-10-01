@@ -1,0 +1,21 @@
+{
+  "name": "faculty-placement-champion-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Backend API for the Faculty Placement Champion course: passwordless identity, progress sync, server-graded exams, certificate issuance and verification.",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

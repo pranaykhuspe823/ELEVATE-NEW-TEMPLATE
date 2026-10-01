@@ -20,7 +20,7 @@ function FindCourseButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1 rounded-full border border-[#C4BAAB] bg-white px-2.5 py-0.5 text-[11px] font-medium text-text hover:border-lime hover:text-lime hover:bg-lime/5 transition flex-none"
+      className="inline-flex items-center gap-1 rounded-full border border-border bg-white px-2.5 py-0.5 text-[11px] font-medium text-text hover:border-lime hover:text-lime hover:bg-lime/5 transition flex-none"
     >
       <SearchIcon width={10} height={10} /> Find course
     </button>
@@ -204,7 +204,7 @@ export default function WeakTopicsCard({
   const isEmpty = weakTopics.length === 0 && facultyTopics.length === 0;
 
   return (
-    <section className="card !p-4 shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+    <section className="card !p-4">
       <CardHeader
         dense
         icon={<TargetIcon width={16} height={16} />}
@@ -215,7 +215,7 @@ export default function WeakTopicsCard({
             <button
               type="button"
               onClick={() => setAdding(true)}
-              className="inline-flex items-center gap-1 rounded-full border border-[#C4BAAB] bg-white px-2.5 py-1 text-xs font-medium hover:border-lime hover:text-lime transition"
+              className="inline-flex items-center gap-1 rounded-full border border-border bg-white px-2.5 py-1 text-xs font-medium hover:border-lime hover:text-lime transition"
             >
               <PlusIcon width={11} height={11} /> Add
             </button>

@@ -681,15 +681,15 @@ export default function InterviewPage() {
               <rect x="14" y="18" width="36" height="30" rx="10" fill="rgba(255,255,255,0.92)" />
               <rect x="28" y="8" width="8" height="12" rx="3" fill="rgba(255,255,255,0.92)" />
               <circle cx="32" cy="8" r="4" fill="rgba(255,255,255,0.92)" />
-              <circle cx="24" cy="33" r="4" fill="#1E3A6E" />
-              <circle cx="40" cy="33" r="4" fill="#1E3A6E" />
+              <circle cx="24" cy="33" r="4" fill="#3547FF" />
+              <circle cx="40" cy="33" r="4" fill="#3547FF" />
               <rect
                 x="23"
                 y="42"
                 width="18"
                 height={isAiSpeaking ? 5 : 3}
                 rx="2.5"
-                fill="#1E3A6E"
+                fill="#3547FF"
               />
             </svg>
           </div>

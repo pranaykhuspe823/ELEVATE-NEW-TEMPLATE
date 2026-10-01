@@ -50,7 +50,7 @@ export default function StudentDriveFits({
   if (state.status === "ok" && state.hasResume && state.fits.length === 0) return null;
 
   return (
-    <section className="card shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+    <section className="card">
       <CardHeader
         icon={<TargetIcon width={18} height={18} />}
         title="Campus drive fit"

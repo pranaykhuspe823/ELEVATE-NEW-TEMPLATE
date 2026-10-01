@@ -90,7 +90,7 @@ export default function PlagiarismReviewSection({
   return (
     <section
       id="plagiarism-review"
-      className="card scroll-mt-24 shadow-[0_1px_2px_rgba(31,41,55,0.04)]"
+      className="card scroll-mt-24"
     >
       <CardHeader
         icon={<ShieldIcon width={18} height={18} />}
@@ -132,10 +132,10 @@ export default function PlagiarismReviewSection({
                 <SparkIcon
                   width={16}
                   height={16}
-                  className="flex-none mt-0.5 text-[#8a6410]"
+                  className="flex-none mt-0.5 text-lime-ink"
                 />
                 <div>
-                  <p className="text-[11px] font-mono uppercase tracking-[0.12em] text-[#8a6410]">
+                  <p className="text-[11px] font-mono uppercase tracking-[0.12em] text-lime-ink">
                     AI summary
                   </p>
                   <p className="text-sm leading-relaxed mt-0.5">{m.explanation}</p>

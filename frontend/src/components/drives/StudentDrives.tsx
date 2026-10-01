@@ -218,7 +218,7 @@ export default function StudentDrives() {
                   <p className="text-text-2 text-sm">No drives in this view.</p>
                 </div>
               ) : (
-                <ul className="card !p-0 overflow-hidden divide-y divide-border shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+                <ul className="card !p-0 overflow-hidden divide-y divide-border">
                   {visible.map((d) => (
                     <DriveRow key={d.id} drive={d} />
                   ))}

@@ -146,8 +146,8 @@ export default function UploadPage() {
             aria-busy={isUploading}
             className={`rounded-[22px] border-2 border-dashed px-6 py-10 sm:px-10 sm:py-12 text-center transition ${
               isDragActive
-                ? "border-lime bg-lime/5 shadow-[0_18px_40px_-24px_rgba(30,58,110,0.5)]"
-                : "border-[#C4BAAB] bg-white hover:border-lime/60"
+                ? "border-lime bg-lime/5 shadow"
+                : "border-border bg-white hover:border-lime"
             }`}
           >
             <div

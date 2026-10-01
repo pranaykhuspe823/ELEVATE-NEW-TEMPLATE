@@ -59,7 +59,7 @@ export function termLabel(months: number) {
 }
 
 const DOT_COLOR: Record<Phase, string> = {
-  trialing: "bg-[#E5B94E]",
+  trialing: "bg-[#FFC93C]",
   grace: "bg-[#FFB4A2]",
   active: "bg-[#8EE0BF]",
   expired: "bg-[#FF8A7A]",

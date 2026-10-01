@@ -47,7 +47,7 @@ export default function AddFacultyCard({
   }
 
   return (
-    <section className="card shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+    <section className="card">
       <CardHeader
         icon={<PlusIcon width={18} height={18} />}
         title="Add faculty"

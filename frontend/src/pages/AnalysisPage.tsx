@@ -93,13 +93,13 @@ function ScoreGauge({ score }: { score: number }) {
         <path
           d="M10 80 A60 60 0 0 1 130 80"
           fill="none"
-          stroke="#D8D0C5"
+          stroke="#17205C"
           strokeWidth="10"
         />
         <path
           d={`M10 80 A60 60 0 0 1 ${x.toFixed(2)} ${y.toFixed(2)}`}
           fill="none"
-          stroke="#14294F"
+          stroke="#2434D6"
           strokeWidth="10"
           strokeLinecap="round"
         />

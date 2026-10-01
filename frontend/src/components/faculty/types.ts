@@ -82,7 +82,7 @@ export interface CourseSearchResponse {
 export const PRIORITIES = ["high", "medium", "low"] as const;
 
 export const inputClass =
-  "text-[15px] text-text px-3.5 py-2.5 rounded-xl border border-[#C4BAAB] bg-white placeholder:text-text-2 focus:outline-none focus:border-lime focus:ring-2 focus:ring-lime/20 transition";
+  "text-[15px] text-text px-3.5 py-2.5 rounded-xl border border-border bg-white placeholder:text-text-3 focus:outline-none focus:shadow-sm transition";
 
 export function errorMessage(err: unknown, fallback: string) {
   return axios.isAxiosError(err) && err.response?.data?.error

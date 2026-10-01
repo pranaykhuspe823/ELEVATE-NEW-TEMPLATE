@@ -59,8 +59,7 @@ export default function ProfileHero({
   }
 
   return (
-    <section className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-lime-dim via-lime to-[#2B4F91] text-white px-5 py-5 sm:px-7 sm:py-6 shadow-[0_14px_32px_-18px_rgba(20,41,79,0.6)]">
-      <div className="pointer-events-none absolute -right-20 -top-24 w-72 h-72 rounded-full bg-lime-ink/25 blur-3xl" />
+    <section className="relative overflow-hidden rounded-[20px] border-2 border-border panel-gradient px-5 py-5 sm:px-7 sm:py-6 shadow-lg">
       <div className="relative flex flex-col sm:flex-row sm:items-center gap-5">
         <div className="relative flex-none w-[88px] h-[88px]">
           <Avatar name={user.name} email={user.email} url={user.avatarUrl} size={88} />
@@ -69,7 +68,7 @@ export default function ProfileHero({
             aria-label="Change profile photo"
             onClick={() => inputRef.current?.click()}
             disabled={busy !== null}
-            className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white text-lime shadow-md flex items-center justify-center hover:bg-[#F4E8DC] transition disabled:opacity-60"
+            className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white border-2 border-border text-lime shadow-md flex items-center justify-center hover:bg-card-2 transition disabled:opacity-60"
           >
             <CameraIcon width={15} height={15} />
           </button>
@@ -87,15 +86,15 @@ export default function ProfileHero({
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#E5B94E]">
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-lime">
             My profile
           </p>
-          <h1 className="text-[26px] leading-tight text-white break-words">
+          <h1 className="text-[26px] leading-tight text-text break-words">
             {user.name ?? user.email}
           </h1>
-          <p className="text-white/70 text-[13px] break-all mt-0.5">
+          <p className="text-text-2 text-[13px] break-all mt-0.5">
             {user.email}
-            <span className="text-white/40"> · </span>
+            <span className="text-text-3"> · </span>
             {ROLE_LABEL[user.role]}
           </p>
         </div>
@@ -113,7 +112,7 @@ export default function ProfileHero({
           {user.avatarUrl && (
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/25 px-3.5 py-2 text-xs text-white/85 hover:bg-white/10 transition disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-full border-2 border-border px-3.5 py-2 text-xs text-text-2 hover:bg-white/60 transition disabled:opacity-60"
               disabled={busy !== null}
               onClick={() => void handleRemove()}
             >
@@ -124,7 +123,7 @@ export default function ProfileHero({
         </div>
       </div>
       {error && (
-        <p role="alert" className="relative mt-3 text-sm text-[#FFB4A2]">
+        <p role="alert" className="relative mt-3 text-sm text-coral">
           {error}
         </p>
       )}

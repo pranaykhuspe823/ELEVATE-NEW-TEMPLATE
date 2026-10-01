@@ -115,7 +115,7 @@ function UserMenu({ user, items }: { user: AuthUser; items: NavItem[] }) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 mt-2 w-[268px] rounded-2xl border border-border bg-white p-2 shadow-[0_18px_40px_-18px_rgba(31,41,55,0.35)]"
+          className="absolute right-0 mt-2 w-[268px] rounded-2xl border border-border bg-white p-2 shadow-lg"
         >
           <div className="px-3 pt-2 pb-3 border-b border-border">
             <p className="text-sm font-medium truncate">{displayName}</p>

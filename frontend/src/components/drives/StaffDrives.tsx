@@ -238,7 +238,7 @@ export default function StaffDrives({ role }: { role: "FACULTY" | "COLLEGE_ADMIN
             <button
               type="button"
               onClick={() => setEditing("new")}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#E5B94E] text-lime-dim px-5 py-2.5 text-sm font-semibold hover:bg-[#EFC55E] transition-colors flex-none"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-lime-ink text-lime-dim px-5 py-2.5 text-sm font-semibold hover:opacity-90 transition-colors flex-none"
             >
               <PlusIcon width={15} height={15} strokeWidth={2.5} /> Add company
             </button>
@@ -309,7 +309,7 @@ export default function StaffDrives({ role }: { role: "FACULTY" | "COLLEGE_ADMIN
                 <p className="text-text-2 text-sm">No drives in this view.</p>
               </div>
             ) : (
-              <ul className="card !p-0 overflow-hidden divide-y divide-border shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+              <ul className="card !p-0 overflow-hidden divide-y divide-border">
                 {visible.map((d) => (
                   <DriveRow
                     key={d.id}

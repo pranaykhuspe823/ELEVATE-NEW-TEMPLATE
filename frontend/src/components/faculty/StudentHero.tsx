@@ -33,9 +33,7 @@ export default function StudentHero({
   const similarityTone = openFlags > 0 ? "coral" : score === null ? "white" : "teal";
 
   return (
-    <section className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-lime-dim via-lime to-[#2B4F91] text-white px-5 py-[18px] sm:px-6 sm:py-5 shadow-[0_14px_32px_-18px_rgba(20,41,79,0.6)]">
-      <div className="pointer-events-none absolute -right-16 -top-20 w-64 h-64 rounded-full bg-lime-ink/25 blur-3xl" />
-
+    <section className="relative overflow-hidden rounded-[20px] border-2 border-border panel-gradient px-5 py-[18px] sm:px-6 sm:py-5 shadow-lg">
       <div className="relative flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
         <div className="flex items-center gap-4 min-w-0 lg:w-[34%] lg:flex-none">
           <Avatar
@@ -45,26 +43,26 @@ export default function StudentHero({
             size={56}
           />
           <div className="min-w-0 flex-1">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-[#E5B94E]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-lime">
               Student profile
             </span>
-            <h1 className="text-[21px] leading-tight text-white break-words mt-1.5">
+            <h1 className="text-[21px] leading-tight text-text break-words mt-1.5">
               {displayName}
             </h1>
-            <p className="text-white/70 text-[13px] break-all leading-snug">
+            <p className="text-text-2 text-[13px] break-all leading-snug">
               {student.email}
-              <span className="text-white/40"> · </span>
+              <span className="text-text-3"> · </span>
               {detail.resumeUploadedAt
                 ? `Resume ${formatDate(detail.resumeUploadedAt)}`
                 : "No resume yet"}
             </p>
-            <span className="inline-flex items-center gap-1.5 mt-1.5 rounded-full bg-white/10 border border-white/15 px-2.5 py-0.5 text-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#E5B94E] flex-none" />
+            <span className="inline-flex items-center gap-1.5 mt-1.5 rounded-full bg-white border-2 border-border px-2.5 py-0.5 text-xs text-text">
+              <span className="w-1.5 h-1.5 rounded-full bg-lime flex-none" />
               {detail.detectedField ?? "Field not detected yet"}
             </span>
           </div>
           <div className="lg:hidden">
-            <ScoreRing score={detail.atsScore} size={68} dark />
+            <ScoreRing score={detail.atsScore} size={68} />
           </div>
         </div>
 
@@ -100,7 +98,7 @@ export default function StudentHero({
         </div>
 
         <div className="hidden lg:block flex-none">
-          <ScoreRing score={detail.atsScore} size={84} dark />
+          <ScoreRing score={detail.atsScore} size={84} />
         </div>
       </div>
     </section>

@@ -21,7 +21,7 @@ function CopyCode({ code }: { code: string }) {
       type="button"
       onClick={() => void copy()}
       aria-label={`Copy code ${code}`}
-      className="inline-flex items-center gap-2 rounded-full border border-[#C4BAAB] bg-white px-3.5 py-1.5 font-mono text-[14px] font-semibold tracking-wider hover:border-lime hover:text-lime transition"
+      className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-3.5 py-1.5 font-mono text-[14px] font-semibold tracking-wider hover:border-lime hover:text-lime transition"
     >
       {code}
       {copied ? (
@@ -46,7 +46,7 @@ export default function AccountCard({
   if (user.role === "COLLEGE_ADMIN") return null;
 
   return (
-    <section className="card !p-4 sm:!p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+    <section className="card !p-4 sm:!p-5">
       {user.role === "STUDENT" ? (
         <>
           <CardHeader

@@ -74,7 +74,7 @@ export default function SiteFooter({ compact = false }: { compact?: boolean }) {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
             {COLUMNS.map((col) => (
               <nav key={col.title} aria-label={col.title}>
-                <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#E5B94E] mb-4">
+                <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#FFC93C] mb-4">
                   {col.title}
                 </h3>
                 <ul className="flex flex-col gap-2.5">

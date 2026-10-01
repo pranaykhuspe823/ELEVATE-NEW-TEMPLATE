@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,8 +15,8 @@
     /* Tailwind's preflight resets heading font-weight to `inherit`, which
        otherwise leaves every heading outside the landing page (which sets
        its own explicit weight) at the body's normal weight -- too thin for
-       a heading at any size. */
-    @apply font-display font-semibold tracking-tight;
+       a heading at any size. Matches the landing page's bold display type. */
+    @apply font-display font-extrabold tracking-tight;
   }
 }
 
@@ -25,23 +26,27 @@
   }
 
   .card {
-    @apply bg-card border border-border rounded-card p-[22px];
+    @apply bg-card border border-border rounded-card p-[22px] shadow;
   }
 
   .btn {
-    @apply font-body font-medium text-sm px-[22px] py-3 rounded-lg border border-border-strong bg-card-2 text-text cursor-pointer transition-colors;
+    @apply font-body font-bold text-sm px-[22px] py-3 rounded-2xl border border-border bg-card-2 text-text cursor-pointer shadow-sm transition-all;
   }
 
   .btn:hover {
-    @apply bg-border-strong;
+    @apply -translate-x-0.5 -translate-y-0.5 shadow;
+  }
+
+  .btn:active {
+    @apply translate-x-0 translate-y-0 shadow-none;
   }
 
   .btn-primary {
-    @apply bg-lime text-white border-lime;
+    @apply bg-lime text-white;
   }
 
   .btn-primary:hover {
-    @apply bg-lime-dim border-lime-dim;
+    @apply bg-lime-dim;
   }
 
   .btn-small {
@@ -67,17 +72,25 @@
   .video-tile-label {
     @apply absolute bottom-2 left-2 font-mono text-[11px] px-2 py-1 rounded-md bg-black/55 text-white;
   }
+
+  /* Light pastel gradient used by the landing page's own bordered/shadowed
+     panels (.lp-iv-stage, .lp-final) -- ink text on top, never white text on
+     a dark fill. Use this instead of any dark navy/purple gradient for
+     "hero" style banners and asides across the app. */
+  .panel-gradient {
+    background: linear-gradient(135deg, #cfd9ff 0%, #e4d6ff 55%, #ffd6ea 100%);
+  }
 }
 
 @keyframes avatar-speak-pulse {
   0%,
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(201, 152, 45, 0.35);
+    box-shadow: 0 0 0 0 rgba(124, 92, 255, 0.35);
   }
   50% {
     transform: scale(1.12);
-    box-shadow: 0 0 0 14px rgba(201, 152, 45, 0);
+    box-shadow: 0 0 0 14px rgba(124, 92, 255, 0);
   }
 }
 
@@ -85,7 +98,8 @@
   width: 108px;
   height: 108px;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #1e3a6e, #c9982d);
+  border: 2px solid #17205c;
+  background: linear-gradient(135deg, #3547ff, #7c5cff);
   transition: transform 0.2s ease;
   display: flex;
   align-items: center;

@@ -187,7 +187,7 @@ export default function DriveForm({
   }
 
   return (
-    <section className="card shadow-[0_1px_2px_rgba(31,41,55,0.04)] mb-5">
+    <section className="card mb-5">
       <div className="flex items-center justify-between gap-3 mb-4">
         <h2 className="text-[17px]">{drive ? `Edit ${drive.companyName}` : "Add a company drive"}</h2>
         <button type="button" className="text-xs text-text-2 hover:text-text" onClick={onCancel}>
@@ -414,7 +414,7 @@ export default function DriveForm({
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 rounded-xl border border-[#C4BAAB] bg-white px-2.5 py-2 min-h-[46px] focus-within:border-lime focus-within:ring-2 focus-within:ring-lime/20 transition">
+          <div className="flex flex-wrap gap-1.5 rounded-xl border border-border bg-white px-2.5 py-2 min-h-[46px] focus-within:border-lime focus-within:ring-2 focus-within:ring-lime/20 transition">
             {skills.map((s) => (
               <span
                 key={s}

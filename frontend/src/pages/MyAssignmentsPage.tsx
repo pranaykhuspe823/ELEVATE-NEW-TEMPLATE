@@ -148,7 +148,7 @@ function AssignmentRow({
 
       {a.reason && (
         <p className="mt-2 border-l-2 border-lime-ink/60 pl-3 text-xs italic text-text-2 leading-relaxed break-words">
-          <span className="not-italic font-medium text-[#8a6410]">Note from {a.assignedBy}:</span>{" "}
+          <span className="not-italic font-medium text-lime-ink">Note from {a.assignedBy}:</span>{" "}
           “{a.reason}”
         </p>
       )}
@@ -292,19 +292,17 @@ export default function MyAssignmentsPage() {
 
   return (
     <div className="pt-6">
-      <section className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-lime-dim via-lime to-[#2B4F91] text-white px-5 py-[18px] sm:px-7 sm:py-5 shadow-[0_18px_40px_-20px_rgba(20,41,79,0.6)]">
-        <div className="pointer-events-none absolute -right-16 -top-20 w-64 h-64 rounded-full bg-lime-ink/25 blur-3xl" />
-        <div className="pointer-events-none absolute -left-10 -bottom-24 w-56 h-56 rounded-full bg-[#8EE0BF]/10 blur-3xl" />
+      <section className="relative overflow-hidden rounded-[20px] border-2 border-border panel-gradient px-5 py-[18px] sm:px-7 sm:py-5 shadow-lg">
         <div className="relative flex items-center gap-4">
           <div className="flex-1 min-w-0">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-[#E5B94E]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-lime">
               <SparkIcon width={11} height={11} />
               My learning plan
             </span>
-            <h1 className="text-[22px] sm:text-[26px] leading-tight text-white mt-2">
+            <h1 className="text-[22px] sm:text-[26px] leading-tight text-text mt-2">
               My assignments
             </h1>
-            <p className="text-white/75 text-[13.5px] mt-1.5 max-w-[560px] leading-relaxed">
+            <p className="text-text font-semibold text-[16px] mt-2 max-w-[560px] leading-relaxed">
               {remaining === 0
                 ? "You're all caught up — every assigned course is complete. Nice work!"
                 : `${remaining} ${remaining === 1 ? "course" : "courses"} to go · about ${formatHours(
@@ -312,7 +310,7 @@ export default function MyAssignmentsPage() {
                   )} of learning left. Your faculty can see your progress.`}
             </p>
           </div>
-          <ScoreRing score={stats.percent} size={72} dark label="% done" />
+          <ScoreRing score={stats.percent} size={72} label="% done" />
         </div>
         <div className="relative mt-4">
           <StatRow>
@@ -344,7 +342,7 @@ export default function MyAssignmentsPage() {
           <p className="text-text-2 text-sm">No courses in this view.</p>
         </div>
       ) : (
-        <ul className="card !p-0 overflow-hidden divide-y divide-border shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+        <ul className="card !p-0 overflow-hidden divide-y divide-border">
           {visible.map((a) => (
             <AssignmentRow key={a.id} assignment={a} onStatus={changeStatus} />
           ))}

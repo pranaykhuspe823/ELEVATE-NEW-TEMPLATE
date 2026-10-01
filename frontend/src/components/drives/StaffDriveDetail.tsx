@@ -125,20 +125,19 @@ export default function StaffDriveDetail({ role }: { role: "FACULTY" | "COLLEGE_
     <div className="pt-4">
       <BackLink />
 
-      <section className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-lime-dim via-lime to-[#2B4F91] text-white px-6 py-5 sm:px-7 shadow-[0_18px_40px_-20px_rgba(20,41,79,0.6)]">
-        <div className="pointer-events-none absolute -right-20 -top-24 w-72 h-72 rounded-full bg-lime-ink/25 blur-3xl" />
+      <section className="relative overflow-hidden rounded-[20px] border-2 border-border panel-gradient px-6 py-5 sm:px-7 shadow-lg">
         <div className="relative flex items-center gap-4 sm:gap-5">
-          <CompanyMark name={drive.companyName} size={56} onDark />
+          <CompanyMark name={drive.companyName} size={56} />
           <div className="flex-1 min-w-0">
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#E5B94E]">
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-lime">
               {isFaculty ? "Student readiness" : "College readiness"}
             </p>
-            <h1 className="text-[24px] sm:text-[28px] leading-tight text-white mt-0.5 break-words">
+            <h1 className="text-[24px] sm:text-[28px] leading-tight text-text mt-0.5 break-words">
               {drive.companyName}
             </h1>
-            <p className="text-white/85 text-sm mt-0.5 break-words">{drive.roleTitle}</p>
+            <p className="text-text-2 text-sm mt-0.5 break-words">{drive.roleTitle}</p>
             <div className="mt-2">
-              <DriveMeta drive={drive} onDark />
+              <DriveMeta drive={drive} />
             </div>
           </div>
         </div>
@@ -148,7 +147,7 @@ export default function StaffDriveDetail({ role }: { role: "FACULTY" | "COLLEGE_
             label="With resume"
             value={summary.withResume}
             hint={summary.withoutResume > 0 ? `${summary.withoutResume} yet to upload` : "everyone uploaded"}
-            hintClass={summary.withoutResume > 0 ? "text-[#F3D186]" : "text-white/60"}
+            hintClass={summary.withoutResume > 0 ? "text-coral" : "text-text-3"}
           />
           <CompactKpi
             label="Average fit"
@@ -171,7 +170,7 @@ export default function StaffDriveDetail({ role }: { role: "FACULTY" | "COLLEGE_
             </section>
           ) : (
             <>
-              <section className="card shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+              <section className="card">
                 <CardHeader
                   icon={<TargetIcon width={18} height={18} />}
                   title="How ready are they?"
@@ -180,7 +179,7 @@ export default function StaffDriveDetail({ role }: { role: "FACULTY" | "COLLEGE_
                 <BucketBar buckets={summary.buckets} total={summary.withResume} />
               </section>
 
-              <section className="card shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+              <section className="card">
                 <CardHeader
                   title="Skills most students are missing"
                   subtitle={
@@ -219,7 +218,7 @@ export default function StaffDriveDetail({ role }: { role: "FACULTY" | "COLLEGE_
           )}
 
           {isFaculty && students && students.length > 0 && (
-            <section className="card !p-0 overflow-hidden shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+            <section className="card !p-0 overflow-hidden">
               <div className="px-5 pt-5 pb-3">
                 <CardHeader
                   icon={<UsersIcon width={18} height={18} />}
@@ -269,7 +268,7 @@ export default function StaffDriveDetail({ role }: { role: "FACULTY" | "COLLEGE_
         </div>
 
         <aside className="flex flex-col gap-4">
-          <section className="card shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+          <section className="card">
             <CardHeader title="Required skills" subtitle={`${drive.skills.length} skills`} dense />
             <p className="flex flex-wrap gap-1.5">
               {drive.skills.map((s) => (
@@ -277,7 +276,7 @@ export default function StaffDriveDetail({ role }: { role: "FACULTY" | "COLLEGE_
               ))}
             </p>
           </section>
-          <section className="card shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+          <section className="card">
             <CardHeader title="Job description" dense />
             <p className="text-[13.5px] leading-relaxed whitespace-pre-line break-words">{jdText}</p>
             {longJd && (

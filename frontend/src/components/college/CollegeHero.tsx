@@ -39,43 +39,40 @@ export default function CollegeHero({
     : "white";
 
   return (
-    <section className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-lime-dim via-lime to-[#2B4F91] text-white px-5 py-[18px] sm:px-7 sm:py-5 shadow-[0_18px_40px_-20px_rgba(20,41,79,0.6)]">
-      <div className="pointer-events-none absolute -right-16 -top-20 w-64 h-64 rounded-full bg-lime-ink/25 blur-3xl" />
-      <div className="pointer-events-none absolute -left-10 -bottom-24 w-56 h-56 rounded-full bg-white/10 blur-3xl" />
-
+    <section className="relative overflow-hidden rounded-[20px] border-2 border-border panel-gradient px-5 py-[18px] sm:px-7 sm:py-5 shadow-lg">
       <div className="relative flex flex-col md:flex-row md:items-center gap-5">
         <Avatar name={college.name} email="" size={64} />
         <div className="flex-1 min-w-0">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-[#E5B94E]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-lime">
             <BuildingIcon width={11} height={11} />
             College dashboard
           </span>
-          <h1 className="text-[22px] sm:text-[26px] leading-tight text-white mt-2 break-words">
+          <h1 className="text-[22px] sm:text-[26px] leading-tight text-text mt-2 break-words">
             {college.name}
           </h1>
-          <p className="text-white/70 text-[13px] mt-1 break-all">
+          <p className="text-text-2 text-[13px] mt-1 break-all">
             {college.domain ? `${college.domain} · ` : ""}
             Placement cell overview
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             {subscription ? (
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3.5 py-1.5 text-[13px]">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white border-2 border-border px-3.5 py-1.5 text-[13px]">
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${phaseDotClass(subscription.phase)}`}
                 />
                 {phaseLabel(subscription)}
-                <span className="text-white/40">·</span>
+                <span className="text-text-3">·</span>
                 {planLabel(subscription.planKey)} plan
               </span>
             ) : (
               <>
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3.5 py-1.5 text-[13px]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#F3D186]" />
+                <span className="inline-flex items-center gap-2 rounded-full bg-white border-2 border-border px-3.5 py-1.5 text-[13px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FFC93C]" />
                   No plan yet
                 </span>
                 <Link
                   to="/college/subscribe"
-                  className="inline-block rounded-full bg-[#E5B94E] text-lime-dim px-4 py-1.5 text-[13px] font-semibold no-underline hover:bg-[#EFC55E] transition-colors"
+                  className="inline-block rounded-full bg-[#FFC93C] text-lime-dim px-4 py-1.5 text-[13px] font-semibold no-underline hover:bg-[#FFC93C]/90 transition-colors"
                 >
                   Choose a plan
                 </Link>
@@ -84,7 +81,7 @@ export default function CollegeHero({
           </div>
         </div>
         {subscription && (
-          <ScoreRing score={seatPercent} size={88} dark label="% seats" />
+          <ScoreRing score={seatPercent} size={88} label="% seats" />
         )}
       </div>
 

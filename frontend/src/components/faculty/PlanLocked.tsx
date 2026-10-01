@@ -5,7 +5,7 @@ import { ShieldIcon } from "./icons";
 export default function PlanLocked({ message }: { message: string }) {
   return (
     <div className="pt-8 pb-10 max-w-[560px] mx-auto">
-      <div className="card !p-7 sm:!p-9 shadow-[0_18px_40px_-24px_rgba(31,41,55,0.35)]">
+      <div className="card !p-7 sm:!p-9">
         <span className="w-12 h-12 rounded-2xl bg-coral/10 text-coral flex items-center justify-center mb-5">
           <ShieldIcon width={24} height={24} />
         </span>

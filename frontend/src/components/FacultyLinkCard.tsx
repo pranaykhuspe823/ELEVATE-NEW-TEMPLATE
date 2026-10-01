@@ -51,7 +51,7 @@ export default function FacultyLinkCard() {
   }
 
   return (
-    <section className="card !p-4 sm:!p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+    <section className="card !p-4 sm:!p-5">
       <div className="flex items-start gap-3 mb-3.5">
         <span className="flex-none w-9 h-9 rounded-xl bg-lime/10 text-lime flex items-center justify-center">
           <LinkIcon width={16} height={16} />

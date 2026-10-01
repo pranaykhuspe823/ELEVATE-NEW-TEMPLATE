@@ -121,17 +121,15 @@ export default function FacultyLoginGate() {
   return (
     <div className="pt-8 pb-10">
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-8 xl:gap-12 items-start">
-        <aside className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-lime-dim via-lime to-[#2B4F91] text-white p-7 sm:p-9 shadow-[0_18px_40px_-20px_rgba(20,41,79,0.6)] lg:sticky lg:top-[100px]">
-          <div className="pointer-events-none absolute -right-20 -top-24 w-72 h-72 rounded-full bg-lime-ink/25 blur-3xl" />
-          <div className="pointer-events-none absolute -left-16 -bottom-28 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
+        <aside className="relative overflow-hidden rounded-[22px] border-2 border-border panel-gradient p-7 sm:p-9 shadow-lg lg:sticky lg:top-[100px]">
           <div className="relative">
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#E5B94E]">
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-lime">
               Faculty access
             </p>
-            <h1 className="text-[30px] sm:text-[36px] leading-[1.15] text-white mt-2 mb-4">
+            <h1 className="text-[30px] sm:text-[36px] leading-[1.15] text-text mt-2 mb-4">
               See exactly where your students are stuck.
             </h1>
-            <p className="text-white/75 text-sm leading-relaxed max-w-[460px]">
+            <p className="text-text-2 text-sm leading-relaxed max-w-[460px]">
               One dashboard for every student linked to you — their ATS score,
               detected field, and weak topics — so you can assign the right
               course to the right person.
@@ -139,10 +137,10 @@ export default function FacultyLoginGate() {
             <ul className="flex flex-col gap-4 mt-8">
               {BENEFITS.map((b) => (
                 <li key={b.text} className="flex items-start gap-3.5">
-                  <span className="flex-none w-9 h-9 rounded-xl bg-white/10 border border-white/15 text-[#E5B94E] flex items-center justify-center">
+                  <span className="flex-none w-9 h-9 rounded-xl bg-white border-2 border-border text-lime flex items-center justify-center">
                     {b.icon}
                   </span>
-                  <span className="text-sm text-white/85 leading-snug pt-1.5">
+                  <span className="text-sm text-text leading-snug pt-1.5">
                     {b.text}
                   </span>
                 </li>
@@ -152,7 +150,7 @@ export default function FacultyLoginGate() {
         </aside>
 
         <div className="w-full max-w-[520px] lg:justify-self-center">
-          <div className="card !p-6 sm:!p-8 shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+          <div className="card !p-6 sm:!p-8">
             <Segmented<Mode>
               label="Log in or register"
               value={mode}

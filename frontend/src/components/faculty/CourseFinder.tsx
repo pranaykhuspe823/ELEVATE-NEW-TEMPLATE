@@ -219,7 +219,7 @@ export default function CourseFinder({
   return (
     <section
       id="course-finder"
-      className="card !p-0 overflow-hidden scroll-mt-24 shadow-[0_1px_2px_rgba(31,41,55,0.04)]"
+      className="card !p-0 overflow-hidden scroll-mt-24"
     >
       <div className="p-4 sm:p-5">
         <CardHeader
@@ -272,7 +272,7 @@ export default function CourseFinder({
                   setQuery(s);
                   void runSearch(s);
                 }}
-                className="rounded-full border border-[#C4BAAB] bg-white px-2.5 py-0.5 text-xs text-text hover:border-lime hover:text-lime hover:bg-lime/5 transition"
+                className="rounded-full border border-border bg-white px-2.5 py-0.5 text-xs text-text hover:border-lime hover:text-lime hover:bg-lime/5 transition"
               >
                 {s}
               </button>
@@ -443,7 +443,7 @@ export default function CourseFinder({
                       href={l.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-full border border-[#C4BAAB] bg-white px-2.5 py-0.5 text-xs hover:border-lime hover:text-lime transition"
+                      className="inline-flex items-center gap-1 rounded-full border border-border bg-white px-2.5 py-0.5 text-xs hover:border-lime hover:text-lime transition"
                     >
                       {l.platform} <ExternalIcon width={10} height={10} />
                     </a>

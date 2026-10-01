@@ -140,7 +140,7 @@ function ShareCode({ code }: { code: string }) {
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl bg-white text-text pl-4 pr-2 py-2 shadow-[0_6px_18px_-8px_rgba(0,0,0,0.4)] flex-none">
+    <div className="flex items-center gap-3 rounded-2xl bg-white text-text border-2 border-border pl-4 pr-2 py-2 shadow flex-none">
       <div>
         <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-text-2">
           Your share code
@@ -227,19 +227,17 @@ export default function Roster({
 
   return (
     <div className="pt-6">
-      <section className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-lime-dim via-lime to-[#2B4F91] text-white px-5 py-[18px] sm:px-7 sm:py-5 shadow-[0_18px_40px_-20px_rgba(20,41,79,0.6)]">
-        <div className="pointer-events-none absolute -right-16 -top-20 w-64 h-64 rounded-full bg-lime-ink/25 blur-3xl" />
-        <div className="pointer-events-none absolute -left-10 -bottom-24 w-56 h-56 rounded-full bg-[#8EE0BF]/10 blur-3xl" />
+      <section className="relative overflow-hidden rounded-[20px] border-2 border-border panel-gradient px-5 py-[18px] sm:px-7 sm:py-5 shadow-lg">
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="min-w-0">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-[#E5B94E]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-lime">
               <UsersIcon width={11} height={11} />
               Faculty dashboard
             </span>
-            <h1 className="text-[22px] sm:text-[26px] leading-tight text-white mt-2">
+            <h1 className="text-[22px] sm:text-[26px] leading-tight text-text mt-2">
               Your students
             </h1>
-            <p className="text-white/75 text-[13.5px] mt-1.5 max-w-[560px] leading-relaxed">
+            <p className="text-text font-semibold text-[16px] mt-2 max-w-[560px] leading-relaxed">
               See who needs support at a glance, then open a student to assign
               courses and review their resume.
             </p>
@@ -278,7 +276,7 @@ export default function Roster({
           </EmptyState>
         </div>
       ) : (
-        <section className="card !p-0 overflow-hidden mt-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+        <section className="card !p-0 overflow-hidden mt-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-3.5 border-b border-border">
             <div className="relative sm:w-[320px]">
               <SearchIcon

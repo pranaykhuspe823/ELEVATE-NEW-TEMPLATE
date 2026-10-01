@@ -69,7 +69,7 @@ export function ScoreRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke={dark ? "rgba(255,255,255,0.18)" : "#E7E5E4"}
+          stroke={dark ? "rgba(255,255,255,0.18)" : "#DFE7FF"}
           strokeWidth={stroke}
         />
         {pct > 0 && (
@@ -78,7 +78,7 @@ export function ScoreRing({
             cy={size / 2}
             r={r}
             fill="none"
-            stroke={dark ? "#E5B94E" : "#1E3A6E"}
+            stroke={dark ? "#FFC93C" : "#3547FF"}
             strokeWidth={stroke}
             strokeLinecap="round"
             strokeDasharray={`${c * pct} ${c}`}
@@ -115,7 +115,7 @@ const BADGE_TONES = {
   amber: "bg-amber/10 text-amber",
   coral: "bg-coral/10 text-coral",
   navy: "bg-lime/10 text-lime",
-  gold: "bg-lime-ink/15 text-[#8a6410]",
+  gold: "bg-lime-ink/15 text-[#5b3fa8]",
   neutral: "bg-card-2 text-text-2",
 } as const;
 
@@ -139,7 +139,7 @@ export function CompactKpi({
   label,
   value,
   hint,
-  hintClass = "text-white/60",
+  hintClass = "text-text-2",
 }: {
   label: string;
   value: string | number;
@@ -147,15 +147,15 @@ export function CompactKpi({
   hintClass?: string;
 }) {
   return (
-    <div className="flex items-center gap-3.5 rounded-2xl bg-white/10 border border-white/10 px-4 py-3 backdrop-blur-sm">
-      <span className="font-display font-semibold text-[28px] leading-none text-white">
+    <div className="flex items-center gap-3.5 rounded-2xl bg-white border-2 border-border px-4 py-3 shadow-sm">
+      <span className="font-display font-extrabold text-[28px] leading-none text-text">
         {value}
       </span>
       <span className="min-w-0">
-        <span className="block font-mono text-[10px] uppercase tracking-[0.12em] text-white/60">
+        <span className="block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-text-2">
           {label}
         </span>
-        <span className={`block text-xs mt-0.5 leading-snug ${hintClass}`}>
+        <span className={`block text-xs font-medium mt-0.5 leading-snug ${hintClass}`}>
           {hint}
         </span>
       </span>
@@ -167,7 +167,7 @@ export function KpiTile({
   label,
   value,
   hint,
-  hintClass = "text-white/60",
+  hintClass = "text-text-2",
 }: {
   label: string;
   value: string | number;
@@ -175,14 +175,14 @@ export function KpiTile({
   hintClass?: string;
 }) {
   return (
-    <div className="rounded-2xl bg-white/10 border border-white/10 px-4 py-3.5 backdrop-blur-sm">
-      <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/60">
+    <div className="rounded-2xl bg-white border-2 border-border px-4 py-3.5 shadow-sm">
+      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-text-2">
         {label}
       </p>
-      <p className="font-display font-semibold text-[26px] leading-none mt-2 text-white">
+      <p className="font-display font-extrabold text-[26px] leading-none mt-2 text-text">
         {value}
       </p>
-      <p className={`text-xs mt-1.5 ${hintClass}`}>{hint}</p>
+      <p className={`text-xs font-medium mt-1.5 ${hintClass}`}>{hint}</p>
     </div>
   );
 }

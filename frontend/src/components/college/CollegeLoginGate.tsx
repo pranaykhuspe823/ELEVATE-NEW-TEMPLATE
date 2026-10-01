@@ -79,27 +79,25 @@ export default function CollegeLoginGate() {
   return (
     <div className="pt-8 pb-10">
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-8 xl:gap-12 items-start">
-        <aside className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-lime-dim via-lime to-[#2B4F91] text-white p-7 sm:p-9 shadow-[0_18px_40px_-20px_rgba(20,41,79,0.6)] lg:sticky lg:top-[100px]">
-          <div className="pointer-events-none absolute -right-20 -top-24 w-72 h-72 rounded-full bg-lime-ink/25 blur-3xl" />
-          <div className="pointer-events-none absolute -left-16 -bottom-28 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
+        <aside className="relative overflow-hidden rounded-[22px] border-2 border-border panel-gradient p-7 sm:p-9 shadow-lg lg:sticky lg:top-[100px]">
           <div className="relative">
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#E5B94E]">
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-lime">
               College dashboard
             </p>
-            <h1 className="text-[30px] sm:text-[36px] leading-[1.15] text-white mt-2 mb-4">
+            <h1 className="text-[30px] sm:text-[36px] leading-[1.15] text-text mt-2 mb-4">
               Welcome back to your placement cell.
             </h1>
-            <p className="text-white/75 text-sm leading-relaxed max-w-[440px]">
+            <p className="text-text-2 text-sm leading-relaxed max-w-[440px]">
               Sign in with the email and password you registered your college
               with.
             </p>
             <ul className="flex flex-col gap-4 mt-8">
               {POINTS.map((p) => (
                 <li key={p.text} className="flex items-start gap-3.5">
-                  <span className="flex-none w-9 h-9 rounded-xl bg-white/10 border border-white/15 text-[#E5B94E] flex items-center justify-center">
+                  <span className="flex-none w-9 h-9 rounded-xl bg-white border-2 border-border text-lime flex items-center justify-center">
                     {p.icon}
                   </span>
-                  <span className="text-sm text-white/85 leading-snug pt-1.5">
+                  <span className="text-sm text-text leading-snug pt-1.5">
                     {p.text}
                   </span>
                 </li>
@@ -108,7 +106,7 @@ export default function CollegeLoginGate() {
           </div>
         </aside>
 
-        <div className="card !p-6 sm:!p-8 w-full max-w-[520px] lg:justify-self-center shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+        <div className="card !p-6 sm:!p-8 w-full max-w-[520px] lg:justify-self-center">
           <h2 className="text-[22px] leading-tight mb-1">TPO login</h2>
           <p className="text-text-2 text-sm mb-6">
             Training &amp; placement officers sign in here.

@@ -24,7 +24,7 @@ export default function IntegrityCard({
       : "bg-teal";
 
   return (
-    <section className="card !p-4 shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+    <section className="card !p-4">
       <CardHeader
         dense
         icon={<ShieldIcon width={16} height={16} />}

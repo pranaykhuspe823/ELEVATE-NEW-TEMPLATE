@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 
 const TONE_ICON: Record<string, string> = {
-  gold: "bg-[#E5B94E]/20 text-[#E5B94E]",
-  teal: "bg-[#8EE0BF]/20 text-[#8EE0BF]",
-  coral: "bg-[#FFB4A2]/20 text-[#FFB4A2]",
-  white: "bg-white/15 text-white",
+  gold: "bg-[#FFC93C]/20 text-[#FFC93C]",
+  teal: "bg-teal/20 text-teal",
+  coral: "bg-coral/20 text-coral",
+  white: "bg-lime/10 text-lime",
 };
 
 /** A compact icon + number stat, used in a row across the top of a hero
@@ -24,21 +24,21 @@ export function StatPill({
   tone?: keyof typeof TONE_ICON;
 }) {
   return (
-    <div className="flex items-center gap-2.5 rounded-2xl bg-white/10 border border-white/10 px-3 py-2.5 backdrop-blur-sm min-w-0">
+    <div className="flex items-center gap-2.5 rounded-2xl bg-white border-2 border-border px-3 py-2.5 min-w-0 shadow-sm">
       <span
-        className={`flex-none w-8 h-8 rounded-lg flex items-center justify-center ${TONE_ICON[tone]}`}
+        className={`flex-none w-9 h-9 rounded-lg border-2 border-border flex items-center justify-center ${TONE_ICON[tone]}`}
       >
         {icon}
       </span>
       <span className="min-w-0">
-        <span className="block font-display font-bold text-[18px] leading-none text-white truncate">
+        <span className="block font-display font-extrabold text-[20px] leading-none text-text truncate">
           {value}
         </span>
-        <span className="block font-mono text-[9px] uppercase tracking-[0.1em] text-white/55 mt-1 truncate">
+        <span className="block font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-text-2 mt-1 truncate">
           {label}
         </span>
         {hint && (
-          <span className="block text-[11px] text-white/75 mt-0.5 truncate">{hint}</span>
+          <span className="block text-[12px] font-medium text-text-2 mt-0.5 truncate">{hint}</span>
         )}
       </span>
     </div>

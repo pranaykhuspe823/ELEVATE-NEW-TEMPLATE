@@ -233,7 +233,7 @@ export default function AssignedCourses({
   onError,
 }: RowProps & { assignments: Assignment[] }) {
   return (
-    <section className="card !p-4 shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+    <section className="card !p-4">
       <CardHeader
         dense
         icon={<BookIcon width={16} height={16} />}

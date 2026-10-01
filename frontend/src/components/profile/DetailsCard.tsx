@@ -42,7 +42,7 @@ export default function DetailsCard({
   }
 
   return (
-    <section className="card !p-4 sm:!p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)]">
+    <section className="card !p-4 sm:!p-5">
       <CardHeader
         dense
         icon={<UserIcon width={16} height={16} />}

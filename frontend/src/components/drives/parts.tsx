@@ -195,19 +195,17 @@ export function DrivesHero({
   children?: ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-lime-dim via-lime to-[#2B4F91] text-white px-5 py-[18px] sm:px-7 sm:py-5 shadow-[0_18px_40px_-20px_rgba(20,41,79,0.6)]">
-      <div className="pointer-events-none absolute -right-16 -top-20 w-64 h-64 rounded-full bg-lime-ink/25 blur-3xl" />
-      <div className="pointer-events-none absolute -left-10 -bottom-24 w-56 h-56 rounded-full bg-[#8EE0BF]/10 blur-3xl" />
+    <section className="relative overflow-hidden rounded-[20px] border-2 border-border panel-gradient px-5 py-[18px] sm:px-7 sm:py-5 shadow-lg">
       <div className="relative flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="flex-1 min-w-0">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-[#E5B94E]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-lime">
             <SparkIcon width={11} height={11} />
             {eyebrow}
           </span>
-          <h1 className="text-[22px] sm:text-[26px] leading-tight text-white mt-2 break-words">
+          <h1 className="text-[22px] sm:text-[26px] leading-tight text-text mt-2 break-words">
             {title}
           </h1>
-          <p className="text-white/75 text-[13.5px] mt-1.5 max-w-[600px] leading-relaxed">{blurb}</p>
+          <p className="text-text font-semibold text-[16px] mt-2 max-w-[600px] leading-relaxed">{blurb}</p>
         </div>
         {action}
       </div>
