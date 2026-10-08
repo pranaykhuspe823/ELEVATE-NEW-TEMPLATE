@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { BookIcon, CheckIcon, CopyIcon, SearchIcon, ShieldIcon, TargetIcon, UsersIcon } from "./icons";
 import { Avatar, Badge, EmptyState, Segmented } from "./ui";
 import { StatPill, StatRow } from "../common/StatPill";
+import CertificationsCard from "./CertificationsCard";
 import { inputClass } from "./types";
 
 export interface RosterStudent {
@@ -56,19 +57,19 @@ function StudentRow({ student: s }: { student: RosterStudent }) {
     <li>
       <Link
         to={`/faculty/students/${s.id}`}
-        className={`group grid grid-cols-[minmax(0,1fr)_auto] ${COLUMNS} items-center gap-x-4 gap-y-2.5 px-4 sm:px-5 py-3.5 text-text no-underline transition-colors hover:bg-bg/80`}
+        className={`group grid grid-cols-[minmax(0,1fr)_auto] ${COLUMNS} items-center gap-x-4 gap-y-2.5 px-4 sm:px-5 py-4 text-text no-underline transition-colors hover:bg-bg/80`}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <Avatar name={s.name} email={s.email} url={s.avatarUrl} size={40} />
+          <Avatar name={s.name} email={s.email} url={s.avatarUrl} size={42} />
           <div className="min-w-0">
-            <p className="text-[15px] font-semibold leading-snug truncate">
+            <p className="text-[15.5px] font-semibold leading-snug truncate">
               {s.name ?? s.email}
             </p>
-            <p className="text-text-2 text-[13px] truncate">{s.email}</p>
+            <p className="text-text-2 text-[13.5px] truncate mt-0.5">{s.email}</p>
           </div>
         </div>
 
-        <p className="col-span-2 md:col-span-1 text-sm text-text-2 leading-snug line-clamp-2 md:order-none">
+        <p className="col-span-2 md:col-span-1 text-[14px] text-text-2 leading-snug line-clamp-2 md:order-none">
           {s.detectedField ??
             (s.hasResume ? "Field not detected yet" : "No resume uploaded yet")}
         </p>
@@ -140,19 +141,19 @@ function ShareCode({ code }: { code: string }) {
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl bg-white text-text border-2 border-border pl-4 pr-2 py-2 shadow flex-none">
+    <div className="flex items-center gap-3.5 rounded-2xl bg-white text-text border-2 border-border pl-5 pr-3 py-3 shadow flex-none">
       <div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-text-2">
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-text-2">
           Your share code
         </p>
-        <p className="font-mono text-[16px] font-semibold tracking-wider leading-tight">
+        <p className="font-mono text-[18px] font-semibold tracking-wider leading-tight mt-0.5">
           {code}
         </p>
       </div>
       <button
         type="button"
         onClick={() => void copy()}
-        className="btn btn-small !px-3 inline-flex items-center gap-1.5"
+        className="btn btn-small !px-4 inline-flex items-center gap-1.5"
       >
         {copied ? (
           <>
@@ -170,7 +171,7 @@ function ShareCode({ code }: { code: string }) {
 
 function ColumnHeader({ children }: { children: ReactNode }) {
   return (
-    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-text-2">
+    <span className="font-mono text-[11.5px] font-semibold uppercase tracking-[0.1em] text-text-2">
       {children}
     </span>
   );
@@ -230,8 +231,8 @@ export default function Roster({
       <section className="relative overflow-hidden rounded-[20px] border-2 border-border panel-gradient px-5 py-[18px] sm:px-7 sm:py-5 shadow-lg">
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="min-w-0">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-lime">
-              <UsersIcon width={11} height={11} />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.13em] text-lime">
+              <UsersIcon width={12} height={12} />
               Faculty dashboard
             </span>
             <h1 className="text-[22px] sm:text-[26px] leading-tight text-text mt-2">
@@ -266,6 +267,8 @@ export default function Roster({
           </StatRow>
         </div>
       </section>
+
+      <CertificationsCard />
 
       {students.length === 0 ? (
         <div className="card mt-5">

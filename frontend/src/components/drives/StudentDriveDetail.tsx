@@ -125,7 +125,7 @@ export default function StudentDriveDetail() {
         <div className="relative flex items-center gap-4 sm:gap-5">
           <CompanyMark name={drive.companyName} size={56} />
           <div className="flex-1 min-w-0">
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-lime">
+            <p className="font-mono text-[12px] font-semibold uppercase tracking-[0.14em] text-lime">
               Campus drive
             </p>
             <h1 className="text-[24px] sm:text-[28px] leading-tight text-text mt-0.5 break-words">

@@ -43,8 +43,8 @@ export default function CollegeHero({
       <div className="relative flex flex-col md:flex-row md:items-center gap-5">
         <Avatar name={college.name} email="" size={64} />
         <div className="flex-1 min-w-0">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-lime">
-            <BuildingIcon width={11} height={11} />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.13em] text-lime">
+            <BuildingIcon width={12} height={12} />
             College dashboard
           </span>
           <h1 className="text-[22px] sm:text-[26px] leading-tight text-text mt-2 break-words">

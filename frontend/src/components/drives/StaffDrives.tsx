@@ -60,12 +60,12 @@ function DriveRow({
   const done = drive.status === "completed";
 
   return (
-    <li className="px-4 sm:px-5 py-3.5">
-      <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-5">
+    <li className="px-4 sm:px-5 py-4">
+      <div className="flex flex-col md:flex-row md:items-center gap-3.5 md:gap-5">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <CompanyMark name={drive.companyName} size={40} />
           <div className="min-w-0 flex-1">
-            <h2 className={`text-[15px] font-semibold leading-snug break-words ${done ? "text-text-2" : ""}`}>
+            <h2 className={`text-[16px] font-semibold leading-snug break-words ${done ? "text-text-2" : ""}`}>
               <Link
                 to={`/drives/${drive.id}`}
                 className="no-underline text-inherit hover:text-lime transition-colors"
@@ -77,12 +77,12 @@ function DriveRow({
             <div className="mt-1.5">
               <DriveMeta drive={drive} />
             </div>
-            <p className="mt-2 flex flex-wrap items-center gap-1.5">
+            <p className="mt-2.5 flex flex-wrap items-center gap-2">
               {skills.shown.map((s) => (
                 <SkillChip key={s}>{s}</SkillChip>
               ))}
               {skills.extra > 0 && (
-                <span className="text-xs text-text-2">+{skills.extra} more</span>
+                <span className="text-[13px] font-medium text-text-2">+{skills.extra} more</span>
               )}
             </p>
           </div>

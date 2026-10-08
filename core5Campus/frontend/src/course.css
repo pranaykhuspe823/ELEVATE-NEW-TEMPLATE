@@ -1,0 +1,115 @@
+/* Course page: header with enrol card, section menu, learning outcomes, flow diagram, syllabus, certificate. */
+.ic { flex: none; }
+
+/* Header */
+.cd-hero { background-color: var(--band); background-image: repeating-linear-gradient(180deg, transparent 0 31px, var(--rule) 31px 32px); border-bottom: 1px solid var(--line); }
+.cd-hero__grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: clamp(2rem, 5vw, 4rem); align-items: start; padding-block: clamp(2.25rem, 5vw, 3.5rem); }
+.cd-hero__text h1 { margin: .2rem 0 .8rem; max-width: 20ch; }
+.cd-hero__lead { font-size: 1.15rem; color: var(--ink-2); max-width: 46ch; margin-bottom: 1.6rem; }
+.cd-facts { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.cd-facts li { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem .85rem; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; font-size: .92rem; font-weight: 500; }
+.cd-facts .ic { color: var(--accent); }
+
+/* Enrol card: stays in view on desktop while the header scrolls */
+.cd-card { position: sticky; top: calc(var(--header-h) + 1rem); background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--marigold); border-radius: var(--radius); padding: 1.4rem; display: grid; gap: .9rem; box-shadow: var(--shadow-hover); }
+.cd-card__title { font: 800 1.3rem/1.2 var(--heading); margin: 0; }
+.cd-card__list { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; font-size: .93rem; }
+.cd-card__list li { display: flex; gap: .55rem; align-items: flex-start; }
+.cd-card__list .ic { color: var(--accent); margin-top: .1rem; }
+.cd-card__pdf { justify-self: center; font-size: .9rem; }
+
+/* Section menu */
+.cd-tabs { position: sticky; top: var(--header-h); z-index: 20; background: color-mix(in srgb, var(--surface) 96%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.cd-tabs__bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.cd-tabs__links { display: flex; gap: .25rem; overflow-x: auto; scrollbar-width: none; }
+.cd-tabs a { flex: none; padding: .9rem .9rem; font-weight: 600; font-size: .93rem; color: var(--ink-2); text-decoration: none; border-bottom: 3px solid transparent; }
+.cd-tabs a:hover { color: var(--ink); border-color: var(--marigold); }
+
+/* Body */
+.cd-body { padding-block: 1rem 3rem; }
+.cd-sec { scroll-margin-top: calc(var(--header-h) + 3.5rem); }
+.cd-sec > h2, .cd-sec__head h2 { margin-bottom: 1.2rem; }
+.cd-sec__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .5rem 1rem; }
+.cd-sec__head p { margin: 0; }
+.cd-row { margin-top: 1.75rem; }
+.cd-row h3 { font-size: 1rem; margin-bottom: .6rem; }
+.cd-for { color: var(--ink-2); margin: 0; }
+
+/* What you'll learn */
+.cd-learn { list-style: none; margin: 0; padding: 1.25rem 1.4rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1rem 2rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.cd-learn li { display: flex; gap: .65rem; align-items: flex-start; }
+.cd-learn .ic { color: var(--accent); margin-top: .15rem; }
+.cd-learn strong { display: block; font-weight: 600; }
+.cd-learn span { display: block; font-size: .9rem; color: var(--ink-2); line-height: 1.45; }
+
+/* Flow diagram: Enrol → Learn → Assessment → Certificate */
+.flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; position: relative; }
+.flow::before { content: ''; position: absolute; top: 2.15rem; left: 12.5%; right: 12.5%; height: 2px; background: repeating-linear-gradient(90deg, var(--marigold) 0 8px, transparent 8px 14px); }
+.flow__step { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: .3rem; padding: 0 .4rem; }
+.flow__step:not(:last-child)::after { content: ''; position: absolute; top: 1.82rem; right: -.75rem; width: .7rem; height: .7rem; border-top: 2px solid var(--marigold-deep); border-right: 2px solid var(--marigold-deep); transform: rotate(45deg); background: var(--bg); }
+.flow__icon { position: relative; display: grid; place-items: center; width: 4.3rem; height: 4.3rem; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent); color: var(--accent); margin-bottom: .5rem; }
+.flow__step:last-child .flow__icon { background: #12372a; border-color: #12372a; color: var(--marigold); }
+.flow__num { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--marigold-deep); }
+.flow__step strong { font: 700 1.05rem var(--heading); }
+.flow__desc { font-size: .88rem; color: var(--ink-2); line-height: 1.4; }
+.flow__next { margin-top: 1.75rem; padding: 1rem 1.2rem; border: 1.5px dashed var(--line-strong); border-radius: var(--radius); display: grid; gap: .75rem; }
+.flow__next-label { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.flow__ext { display: flex; gap: .6rem; align-items: flex-start; }
+.flow__ext .ic { color: var(--ink-3); margin-top: .15rem; }
+.flow__ext strong { display: block; font-weight: 600; }
+.flow__ext span { font-size: .88rem; color: var(--ink-2); }
+
+/* Syllabus */
+.mods { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+.mods > li + li { border-top: 1px solid var(--line); }
+.mods__head { width: 100%; display: flex; align-items: center; gap: 1rem; padding: 1rem 1.2rem; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.mods__head:hover { background: var(--hover); }
+.mods__head > .ic { color: var(--ink-3); transition: transform .2s; }
+.mods > li.is-open .mods__head > .ic { transform: rotate(180deg); }
+.mods__num { display: grid; place-items: center; flex: none; width: 2rem; height: 2rem; border-radius: 9px; background: var(--accent-soft); color: var(--accent); font: 700 .95rem var(--heading); }
+.mods > li.is-open .mods__num { background: #12372a; color: var(--marigold); }
+.mods__title { flex: 1; display: grid; }
+.mods__title strong { font-weight: 600; }
+.mods__title small { color: var(--ink-3); font-size: .82rem; }
+.mods__lessons { list-style: none; margin: 0; padding: 0 1.2rem 1rem 4.2rem; display: grid; gap: .1rem; }
+.mods__lessons li { display: flex; align-items: center; gap: .65rem; padding: .45rem 0; border-bottom: 1px dashed var(--line); font-size: .93rem; }
+.mods__lessons li:last-child { border-bottom: 0; }
+.mods__lessons .ic { color: var(--accent); }
+.mods__lessons span { flex: 1; }
+.mods__lessons small { color: var(--ink-3); white-space: nowrap; }
+
+/* Certificate */
+.cd-cert { display: grid; grid-template-columns: 1fr minmax(0, 560px); gap: clamp(2rem, 5vw, 4rem); align-items: center; }
+
+
+/* Closing call to action */
+.cd-cta { background: linear-gradient(135deg, #12372a 0%, #0b2a1f 100%); color: #fff; padding-block: 3rem; border-top: 4px solid var(--marigold); }
+.cd-cta__inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.cd-cta h2 { color: #fff; margin: 0 0 .3rem; }
+.cd-cta p { margin: 0; color: #d1e0d6; }
+.cd-cta__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; }
+.cd-cta__ask { color: #e8f1eb; font-weight: 500; }
+.cd-cta__ask:hover { color: var(--marigold); }
+
+@media (max-width: 1020px) {
+  .cd-hero__grid { grid-template-columns: 1fr; }
+  .cd-card { position: static; max-width: 520px; }
+}
+@media (max-width: 720px) {
+  .cd-tabs__enrol { display: none; }
+  .cd-learn, .cd-cert { grid-template-columns: 1fr; }
+
+  /* The flow becomes a vertical timeline */
+  .flow { grid-template-columns: 1fr; gap: 1.25rem; }
+  .flow::before { top: 2rem; bottom: 2rem; left: 2.1rem; right: auto; width: 2px; height: auto; background: repeating-linear-gradient(180deg, var(--marigold) 0 8px, transparent 8px 14px); }
+  .flow__step { display: grid; grid-template-columns: 4.3rem 1fr; column-gap: 1rem; align-items: center; text-align: left; padding: 0; }
+  .flow__step:not(:last-child)::after { display: none; }
+  .flow__icon { grid-row: span 3; margin: 0; }
+  .mods__lessons { padding-left: 1.2rem; }
+}
+
+/* Course page compartments reuse the home-page .zone bands; cards inside them get the shared card shadow */
+.cd-sec .cd-learn, .cd-sec .mods, .cd-sec .acc, .cd-sec .flow__next { box-shadow: var(--card-shadow); border-color: var(--card-line); }
+.cd-sec .cd-sec__head { align-items: flex-end; margin-bottom: 1.6rem; }
+.cd-sec .cd-sec__head h2 { margin: 0; }
+.cd-sec .flow__next { background: var(--surface); }

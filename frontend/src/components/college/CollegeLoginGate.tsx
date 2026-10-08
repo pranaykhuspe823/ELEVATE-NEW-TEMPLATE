@@ -81,7 +81,7 @@ export default function CollegeLoginGate() {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-8 xl:gap-12 items-start">
         <aside className="relative overflow-hidden rounded-[22px] border-2 border-border panel-gradient p-7 sm:p-9 shadow-lg lg:sticky lg:top-[100px]">
           <div className="relative">
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-lime">
+            <p className="font-mono text-[12px] font-semibold uppercase tracking-[0.14em] text-lime">
               College dashboard
             </p>
             <h1 className="text-[30px] sm:text-[36px] leading-[1.15] text-text mt-2 mb-4">

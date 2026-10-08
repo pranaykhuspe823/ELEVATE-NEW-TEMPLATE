@@ -86,13 +86,13 @@ export default function ProfileHero({
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-lime">
+          <p className="font-mono text-[12px] font-semibold uppercase tracking-[0.14em] text-lime">
             My profile
           </p>
-          <h1 className="text-[26px] leading-tight text-text break-words">
+          <h1 className="text-[26px] leading-tight text-text break-words mt-0.5">
             {user.name ?? user.email}
           </h1>
-          <p className="text-text-2 text-[13px] break-all mt-0.5">
+          <p className="text-text-2 text-[14px] break-all mt-1">
             {user.email}
             <span className="text-text-3"> · </span>
             {ROLE_LABEL[user.role]}

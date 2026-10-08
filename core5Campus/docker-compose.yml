@@ -1,0 +1,13 @@
+services:
+  core5-educators:
+    build: .
+    ports: ["4000:4000"]
+    env_file: backend/.env
+    environment:
+      NODE_ENV: production
+      DB_FILE: /data/core5-educators.db
+    volumes:
+      - c5e-data:/data
+    restart: unless-stopped
+volumes:
+  c5e-data:

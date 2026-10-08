@@ -29,7 +29,7 @@ export function SkillChip({
   onClick?: () => void;
   title?: string;
 }) {
-  const cls = `inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[12px] font-medium leading-5 ${CHIP_TONES[tone]}`;
+  const cls = `inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[13px] font-medium leading-5 ${CHIP_TONES[tone]}`;
   if (onClick) {
     return (
       <button
@@ -117,20 +117,20 @@ export function DriveMeta({
     : "bg-card-2 text-text-2";
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${chip}`}>
-        <ClockIcon width={10} height={10} />
+    <div className="flex flex-wrap items-center gap-2">
+      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium ${chip}`}>
+        <ClockIcon width={11} height={11} />
         {drive.driveDate ? formatDriveDate(drive.driveDate) : "Date TBA"}
       </span>
       {drive.location && (
-        <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${chip}`}>{drive.location}</span>
+        <span className={`rounded-full px-2.5 py-1 text-[12px] font-medium ${chip}`}>{drive.location}</span>
       )}
       {drive.ctc && (
-        <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${chip}`}>{drive.ctc}</span>
+        <span className={`rounded-full px-2.5 py-1 text-[12px] font-medium ${chip}`}>{drive.ctc}</span>
       )}
       {when && (
         <span
-          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+          className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${
             soon
               ? "bg-lime-ink text-lime-dim"
               : onDark
@@ -143,7 +143,7 @@ export function DriveMeta({
       )}
       {drive.status === "completed" && (
         <span
-          className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+          className={`rounded-full px-2.5 py-1 text-[12px] font-medium ${
             onDark ? "bg-white/15 text-white" : "bg-card-2 text-text-2"
           }`}
         >
@@ -198,8 +198,8 @@ export function DrivesHero({
     <section className="relative overflow-hidden rounded-[20px] border-2 border-border panel-gradient px-5 py-[18px] sm:px-7 sm:py-5 shadow-lg">
       <div className="relative flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="flex-1 min-w-0">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-lime">
-            <SparkIcon width={11} height={11} />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.13em] text-lime">
+            <SparkIcon width={12} height={12} />
             {eyebrow}
           </span>
           <h1 className="text-[22px] sm:text-[26px] leading-tight text-text mt-2 break-words">

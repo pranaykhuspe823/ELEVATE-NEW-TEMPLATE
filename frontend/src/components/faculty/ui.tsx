@@ -128,7 +128,7 @@ export function Badge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium leading-5 whitespace-nowrap ${BADGE_TONES[tone]}`}
+      className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[12.5px] font-semibold leading-5 whitespace-nowrap ${BADGE_TONES[tone]}`}
     >
       {children}
     </span>
@@ -147,15 +147,15 @@ export function CompactKpi({
   hintClass?: string;
 }) {
   return (
-    <div className="flex items-center gap-3.5 rounded-2xl bg-white border-2 border-border px-4 py-3 shadow-sm">
-      <span className="font-display font-extrabold text-[28px] leading-none text-text">
+    <div className="flex items-center gap-4 rounded-2xl bg-white border-2 border-border px-5 py-4 shadow-sm">
+      <span className="font-display font-extrabold text-[30px] leading-none text-text">
         {value}
       </span>
       <span className="min-w-0">
-        <span className="block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-text-2">
+        <span className="block font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-text-2">
           {label}
         </span>
-        <span className={`block text-xs font-medium mt-0.5 leading-snug ${hintClass}`}>
+        <span className={`block text-[13px] font-medium mt-1 leading-snug ${hintClass}`}>
           {hint}
         </span>
       </span>
@@ -175,14 +175,14 @@ export function KpiTile({
   hintClass?: string;
 }) {
   return (
-    <div className="rounded-2xl bg-white border-2 border-border px-4 py-3.5 shadow-sm">
-      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-text-2">
+    <div className="rounded-2xl bg-white border-2 border-border px-5 py-4 shadow-sm">
+      <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-text-2">
         {label}
       </p>
-      <p className="font-display font-extrabold text-[26px] leading-none mt-2 text-text">
+      <p className="font-display font-extrabold text-[28px] leading-none mt-2.5 text-text">
         {value}
       </p>
-      <p className={`text-xs font-medium mt-1.5 ${hintClass}`}>{hint}</p>
+      <p className={`text-[13px] font-medium mt-2 ${hintClass}`}>{hint}</p>
     </div>
   );
 }
@@ -221,7 +221,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="grid grid-flow-col auto-cols-fr w-full sm:w-auto sm:inline-grid rounded-xl border border-border-strong bg-card-2 p-0.5"
+      className="grid grid-flow-col auto-cols-fr w-full sm:w-auto sm:inline-grid rounded-xl border border-border-strong bg-card-2 p-1"
     >
       {options.map((o) => (
         <button
@@ -232,9 +232,9 @@ export function Segmented<T extends string>({
           onClick={() => onChange(o.value)}
           className={`${
             size === "sm"
-              ? "px-2 sm:px-2.5 py-1 text-[11px]"
-              : "px-2 sm:px-3 py-1.5 text-xs"
-          } font-medium leading-tight text-center rounded-[10px] transition ${
+              ? "px-3 sm:px-3.5 py-1.5 text-[12.5px]"
+              : "px-3 sm:px-4 py-2 text-[13px]"
+          } font-semibold leading-tight text-center rounded-[10px] transition ${
             value === o.value
               ? "bg-lime text-white shadow-sm"
               : "text-text-2 hover:text-text"
@@ -267,19 +267,19 @@ export function CardHeader({
       <div className={`flex items-center min-w-0 ${dense ? "gap-2.5" : "gap-3"}`}>
         {icon && (
           <span
-            className={`flex-none rounded-xl bg-lime/10 text-lime flex items-center justify-center ${
-              dense ? "w-8 h-8" : "w-9 h-9"
+            className={`flex-none rounded-xl border-2 border-border bg-lime/10 text-lime flex items-center justify-center ${
+              dense ? "w-9 h-9" : "w-10 h-10"
             }`}
           >
             {icon}
           </span>
         )}
         <div className="min-w-0">
-          <h2 className={`${dense ? "text-[15px]" : "text-[17px]"} leading-tight`}>
+          <h2 className={`${dense ? "text-[16px]" : "text-[18px]"} leading-tight`}>
             {title}
           </h2>
           {subtitle && (
-            <p className={`text-text-2 mt-0.5 ${dense ? "text-[11.5px]" : "text-xs"}`}>
+            <p className={`text-text-2 mt-1 ${dense ? "text-[12.5px]" : "text-[13px]"}`}>
               {subtitle}
             </p>
           )}
@@ -298,9 +298,9 @@ export function EmptyState({
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center text-center gap-2 rounded-xl border border-dashed border-border-strong bg-bg/60 px-4 py-6">
+    <div className="flex flex-col items-center text-center gap-2.5 rounded-xl border-2 border-dashed border-border-strong bg-bg/60 px-5 py-8">
       <span className="text-text-3">{icon}</span>
-      <p className="text-text-2 text-xs leading-relaxed max-w-[260px]">{children}</p>
+      <p className="text-text-2 text-[13.5px] leading-relaxed max-w-[300px]">{children}</p>
     </div>
   );
 }

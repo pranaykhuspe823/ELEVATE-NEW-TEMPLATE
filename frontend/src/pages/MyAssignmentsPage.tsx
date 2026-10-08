@@ -295,8 +295,8 @@ export default function MyAssignmentsPage() {
       <section className="relative overflow-hidden rounded-[20px] border-2 border-border panel-gradient px-5 py-[18px] sm:px-7 sm:py-5 shadow-lg">
         <div className="relative flex items-center gap-4">
           <div className="flex-1 min-w-0">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-lime">
-              <SparkIcon width={11} height={11} />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.13em] text-lime">
+              <SparkIcon width={12} height={12} />
               My learning plan
             </span>
             <h1 className="text-[22px] sm:text-[26px] leading-tight text-text mt-2">

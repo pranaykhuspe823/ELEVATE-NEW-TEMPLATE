@@ -43,20 +43,20 @@ export default function StudentHero({
             size={56}
           />
           <div className="min-w-0 flex-1">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.13em] text-lime">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white border-2 border-border px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.13em] text-lime">
               Student profile
             </span>
-            <h1 className="text-[21px] leading-tight text-text break-words mt-1.5">
+            <h1 className="text-[22px] leading-tight text-text break-words mt-2">
               {displayName}
             </h1>
-            <p className="text-text-2 text-[13px] break-all leading-snug">
+            <p className="text-text-2 text-[14px] break-all leading-snug mt-0.5">
               {student.email}
               <span className="text-text-3"> · </span>
               {detail.resumeUploadedAt
                 ? `Resume ${formatDate(detail.resumeUploadedAt)}`
                 : "No resume yet"}
             </p>
-            <span className="inline-flex items-center gap-1.5 mt-1.5 rounded-full bg-white border-2 border-border px-2.5 py-0.5 text-xs text-text">
+            <span className="inline-flex items-center gap-1.5 mt-2 rounded-full bg-white border-2 border-border px-3 py-1 text-[13px] font-medium text-text">
               <span className="w-1.5 h-1.5 rounded-full bg-lime flex-none" />
               {detail.detectedField ?? "Field not detected yet"}
             </span>

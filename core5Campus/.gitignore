@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+backend/data/
+*.log
+
+# Local text-to-speech tooling (large, machine-specific)
+backend/.venv-tts/
+backend/.tts-models/

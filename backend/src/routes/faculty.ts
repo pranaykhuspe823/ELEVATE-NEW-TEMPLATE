@@ -1,4 +1,5 @@
 import { Router } from "express";
+import fetch from "node-fetch";
 import { prisma } from "../lib/prisma";
 import { requireAuth, requireCollegePlan, requireFaculty } from "../middleware/auth";
 import { findFacultyStudent } from "../lib/ownership";
@@ -114,6 +115,43 @@ facultyRouter.get("/course-search", async (req, res) => {
 facultyRouter.get("/me", async (req, res) => {
   const me = await prisma.user.findUnique({ where: { id: req.user!.id } });
   res.json({ facultyCode: me?.facultyCode ?? null });
+});
+
+/** Certifications this faculty member has earned on Core5 Campus (a
+ * separate product with its own accounts), looked up server-to-server by
+ * email. Fails soft to an empty list -- Core5 Campus being unconfigured or
+ * unreachable shouldn't break the faculty dashboard. */
+facultyRouter.get("/certifications", async (req, res) => {
+  const baseUrl = process.env.CORE5CAMPUS_API_URL;
+  const serviceKey = process.env.CORE5CAMPUS_SERVICE_KEY;
+  if (!baseUrl || !serviceKey) {
+    res.json({ certificates: [], configured: false });
+    return;
+  }
+
+  const me = await prisma.user.findUnique({
+    where: { id: req.user!.id },
+    select: { email: true },
+  });
+  if (!me) {
+    res.json({ certificates: [], configured: true });
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${baseUrl}/api/service/certificates?email=${encodeURIComponent(me.email)}`,
+      { headers: { "X-Service-Key": serviceKey } }
+    );
+    if (!response.ok) {
+      res.json({ certificates: [], configured: true });
+      return;
+    }
+    const data = (await response.json()) as { certificates?: unknown[] };
+    res.json({ certificates: data.certificates ?? [], configured: true });
+  } catch {
+    res.json({ certificates: [], configured: true });
+  }
 });
 
 /** One student's full picture: resume/ATS/field, weak topics from their
