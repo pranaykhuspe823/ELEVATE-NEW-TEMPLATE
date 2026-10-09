@@ -10,7 +10,8 @@ import { useAuth, type AuthUser } from "../lib/auth";
 import { Avatar } from "../components/faculty/ui";
 import BrandLogo from "../components/BrandLogo";
 import SiteFooter from "../components/SiteFooter";
-import { ChevronDownIcon, LogOutIcon, UserIcon } from "../components/faculty/icons";
+import { ChevronDownIcon, LogOutIcon, SparkIcon, UserIcon } from "../components/faculty/icons";
+import ProductTour from "../components/tour/ProductTour";
 
 interface NavItem {
   to: string;
@@ -55,7 +56,15 @@ function Logo() {
   );
 }
 
-function UserMenu({ user, items }: { user: AuthUser; items: NavItem[] }) {
+function UserMenu({
+  user,
+  items,
+  onTakeTour,
+}: {
+  user: AuthUser;
+  items: NavItem[];
+  onTakeTour: () => void;
+}) {
   const { logout } = useAuth();
   const location = useLocation();
   const [open, setOpen] = useState(false);
@@ -89,6 +98,7 @@ function UserMenu({ user, items }: { user: AuthUser; items: NavItem[] }) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Account menu"
+        data-tour="account-menu"
         onClick={() => setOpen((o) => !o)}
         className={`flex items-center gap-2 rounded-full border py-1 pl-1 pr-2 sm:pr-3 transition-colors ${
           open
@@ -142,6 +152,18 @@ function UserMenu({ user, items }: { user: AuthUser; items: NavItem[] }) {
               <UserIcon width={16} height={16} />
               My profile
             </NavLink>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                onTakeTour();
+              }}
+              className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-text hover:bg-card-2/70"
+            >
+              <SparkIcon width={16} height={16} />
+              Take the tour
+            </button>
           </div>
 
           <div className="sm:hidden py-1.5 border-b border-border">
@@ -195,6 +217,7 @@ export default function AppLayout() {
   }, [loading, user, location.pathname, navigate]);
 
   const items = user ? NAV_BY_ROLE[user.role] : [];
+  const [tourReplay, setTourReplay] = useState(0);
 
   // Taking a test or interview is distraction-free (and the test page pins a
   // webcam preview to the bottom-right), so no footer there.
@@ -232,16 +255,26 @@ export default function AppLayout() {
             <div className="flex items-center gap-2 sm:gap-3">
               <nav aria-label="Main" className="hidden sm:flex items-center gap-1">
                 {items.map((item) => (
-                  <NavLink key={item.to} to={item.to} className={navLinkClass}>
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={navLinkClass}
+                    data-tour={`nav:${item.to}`}
+                  >
                     {item.label}
                   </NavLink>
                 ))}
               </nav>
-              <UserMenu user={user} items={items} />
+              <UserMenu
+                user={user}
+                items={items}
+                onTakeTour={() => setTourReplay((n) => n + 1)}
+              />
             </div>
           )}
         </div>
       </header>
+      {user && <ProductTour key={user.id} user={user} replay={tourReplay} />}
       <div className="flex-1 w-full max-w-[min(1320px,94vw)] mx-auto px-4 sm:px-8 pb-20">
         <Outlet />
       </div>

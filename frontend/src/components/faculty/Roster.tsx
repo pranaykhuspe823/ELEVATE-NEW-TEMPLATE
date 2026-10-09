@@ -161,7 +161,10 @@ function ShareCode({ code }: { code: string }) {
   }
 
   return (
-    <div className="flex items-center gap-3.5 rounded-2xl bg-white text-text border-2 border-border pl-5 pr-3 py-3 shadow flex-none">
+    <div
+      data-tour="share-code"
+      className="flex items-center gap-3.5 rounded-2xl bg-white text-text border-2 border-border pl-5 pr-3 py-3 shadow flex-none"
+    >
       <div>
         <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-text-2">
           Your share code
@@ -266,7 +269,7 @@ export default function Roster({
           {facultyCode && <ShareCode code={facultyCode} />}
         </div>
 
-        <div className="relative mt-4">
+        <div className="relative mt-4" data-tour="faculty-stats">
           <StatRow>
             <StatPill tone="gold" icon={<UsersIcon width={15} height={15} />} label="Students" value={stats.total} hint="linked to you" />
             <StatPill
@@ -291,7 +294,7 @@ export default function Roster({
       <CertificationsCard />
 
       {students.length === 0 ? (
-        <div className="card mt-5">
+        <div className="card mt-5" data-tour="faculty-roster">
           <EmptyState icon={<UsersIcon width={26} height={26} />}>
             No students have linked to you yet. Share your code
             {facultyCode ? ` (${facultyCode})` : ""} with them — they enter it
@@ -299,7 +302,7 @@ export default function Roster({
           </EmptyState>
         </div>
       ) : (
-        <section className="card !p-0 overflow-hidden mt-5">
+        <section className="card !p-0 overflow-hidden mt-5" data-tour="faculty-roster">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-3.5 border-b border-border">
             <div className="relative sm:w-[320px]">
               <SearchIcon

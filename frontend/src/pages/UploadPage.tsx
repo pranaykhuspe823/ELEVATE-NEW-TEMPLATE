@@ -116,7 +116,7 @@ export default function UploadPage() {
             from your own resume, and a plan to close the gaps.
           </p>
 
-          <ul className="grid gap-3.5 sm:grid-cols-2 max-w-[640px]">
+          <ul data-tour="upload-outcomes" className="grid gap-3.5 sm:grid-cols-2 max-w-[640px]">
             {OUTCOMES.map((o) => (
               <li key={o.title} className="flex items-start gap-3">
                 <span className="flex-none w-9 h-9 rounded-xl bg-lime/10 text-lime flex items-center justify-center">
@@ -133,6 +133,7 @@ export default function UploadPage() {
 
         <div className="flex flex-col gap-4 min-w-0">
           <div
+            data-tour="upload-dropzone"
             onDragOver={(e) => {
               e.preventDefault();
               if (!isUploading) setIsDragActive(true);
@@ -225,7 +226,9 @@ export default function UploadPage() {
             After you upload, the analysis usually takes a minute or two.
           </p>
 
-          <FacultyLinkCard />
+          <div data-tour="faculty-link">
+            <FacultyLinkCard />
+          </div>
         </div>
       </div>
     </div>

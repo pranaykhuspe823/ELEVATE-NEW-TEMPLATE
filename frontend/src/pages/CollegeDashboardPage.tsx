@@ -100,26 +100,30 @@ export default function CollegeDashboardPage() {
         </div>
       )}
 
-      <CollegeHero
-        college={college}
-        subscription={subscription}
-        facultyCount={facultyCount}
-        faculty={faculty}
-      />
+      <div data-tour="college-overview">
+        <CollegeHero
+          college={college}
+          subscription={subscription}
+          facultyCount={facultyCount}
+          faculty={faculty}
+        />
+      </div>
 
       {subscription && billing && (
-        <PlanBanner subscription={subscription} billing={billing} />
+        <div data-tour="college-plan">
+          <PlanBanner subscription={subscription} billing={billing} />
+        </div>
       )}
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px] items-start">
-        <div className="lg:col-start-2 lg:row-start-1">
+        <div className="lg:col-start-2 lg:row-start-1" data-tour="college-add-faculty">
           <AddFacultyCard
             subscription={subscription}
             facultyCount={facultyCount}
             onAdded={load}
           />
         </div>
-        <div className="lg:col-start-1 lg:row-start-1 min-w-0">
+        <div className="lg:col-start-1 lg:row-start-1 min-w-0" data-tour="college-faculty">
           <FacultyRoster
             faculty={faculty}
             onChanged={load}
