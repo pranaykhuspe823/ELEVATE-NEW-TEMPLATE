@@ -18,6 +18,7 @@ export interface SuggestedModule {
   topic: string;
   priority: string;
   estimatedHours: number;
+  atsBoost: number;
 }
 
 export interface Assignment {
@@ -28,6 +29,9 @@ export interface Assignment {
   estimatedHours: number;
   reason: string | null;
   status: string;
+  progressPercent: number;
+  atsBoost: number;
+  selfEnrolled: boolean;
   createdAt: string;
 }
 

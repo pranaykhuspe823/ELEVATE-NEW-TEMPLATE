@@ -8,6 +8,7 @@ import { CODING_LANGUAGES } from "../schemas/codingQuestion";
 import type { AnyQuestion, CodingLanguage } from "../schemas/codingQuestion";
 import { requireAuth } from "../middleware/auth";
 import { findOwnedTest } from "../lib/ownership";
+import { atsBoost, latestAtsBaseline, parseKeywords } from "../services/atsBoost";
 
 export const testsRouter = Router();
 testsRouter.use(requireAuth);
@@ -58,9 +59,9 @@ testsRouter.post("/:id/submit", async (req, res) => {
       answers,
       codeSubmissions ?? {}
     );
-    // Fire-and-forget: courses are only ever assigned by faculty (never
-    // self-served), so this just pre-builds the AI-suggested modules faculty
-    // pick from -- the student doesn't wait on it and never sees it directly.
+    // Fire-and-forget: builds the AI-suggested modules the student sees on
+    // their results page (GET /:id/course-plan polls for it) and faculty can
+    // assign from -- submitting doesn't wait on the LLM.
     generateCoursePlan(req.params.id).catch(() => {});
     res.status(201).json(result);
   } catch (err) {
@@ -161,6 +162,98 @@ testsRouter.get("/:id/results", async (req, res) => {
       ])
     ),
     questionBreakdown,
+  });
+});
+
+const PRIORITY_RANK: Record<string, number> = { high: 0, medium: 1, low: 2 };
+
+/** The courses recommended from the latest completed attempt, each with what
+ * it would add to the student's ATS score and whether they've started it. */
+testsRouter.get("/:id/course-plan", async (req, res) => {
+  const test = await findOwnedTest(req.user!.id, req.params.id);
+  if (!test) {
+    res.status(404).json({ error: "Test not found." });
+    return;
+  }
+
+  const attempt = await prisma.testAttempt.findFirst({
+    where: { testId: test.id, completedAt: { not: null } },
+    orderBy: { completedAt: "desc" },
+    include: {
+      coursePlans: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        include: { modules: true },
+      },
+    },
+  });
+  if (!attempt) {
+    res.status(404).json({ error: "No completed attempt for this test yet." });
+    return;
+  }
+
+  const plan = attempt.coursePlans[0];
+  const empty = { atsScore: null, combinedBoost: 0, combinedProjectedScore: null, modules: [] };
+  // The plan is generated in the background right after submit.
+  if (!plan || plan.status === "generating") {
+    res.json({ status: "generating", ...empty });
+    return;
+  }
+  if (plan.status === "failed") {
+    res.json({ status: "failed", ...empty });
+    return;
+  }
+
+  const [baseline, enrollments] = await Promise.all([
+    latestAtsBaseline(req.user!.id),
+    prisma.courseAssignment.findMany({
+      where: {
+        studentId: req.user!.id,
+        sourceModuleId: { in: plan.modules.map((m) => m.id) },
+      },
+    }),
+  ]);
+  const enrollmentByModule = new Map(enrollments.map((a) => [a.sourceModuleId, a]));
+
+  const modules = plan.modules
+    .map((m) => {
+      const boost = baseline ? atsBoost(baseline, parseKeywords(m.keywordsJson)) : null;
+      const enrollment = enrollmentByModule.get(m.id);
+      return {
+        id: m.id,
+        title: m.title,
+        topic: m.topic,
+        priority: m.priority,
+        estimatedHours: m.estimatedHours,
+        resources: JSON.parse(m.resourcesJson),
+        keywords: boost?.keywords ?? [],
+        atsBoost: boost?.points ?? 0,
+        projectedScore: boost?.projectedScore ?? null,
+        enrollment: enrollment
+          ? {
+              assignmentId: enrollment.id,
+              status: enrollment.status,
+              progressPercent: enrollment.progressPercent,
+            }
+          : null,
+      };
+    })
+    .sort(
+      (a, b) =>
+        (PRIORITY_RANK[a.priority] ?? 3) - (PRIORITY_RANK[b.priority] ?? 3) ||
+        b.atsBoost - a.atsBoost
+    );
+
+  const combined = baseline
+    ? atsBoost(baseline, plan.modules.flatMap((m) => parseKeywords(m.keywordsJson)))
+    : null;
+
+  res.json({
+    status: "ready",
+    atsScore: baseline?.totalScore ?? null,
+    combinedBoost: combined?.points ?? 0,
+    combinedProjectedScore: combined?.projectedScore ?? null,
+    modules,
   });
 });
 

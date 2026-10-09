@@ -240,6 +240,8 @@ def score_rules(req: ScoreRequest):
         else:
             missing.append(kw)
 
+    # backend/src/services/atsBoost.ts re-runs this formula to show students
+    # how much a course would raise their score -- keep the two in sync.
     keyword_score = 0
     if keywords:
         keyword_score = min(round((len(matched) / len(keywords)) * 30), 30)

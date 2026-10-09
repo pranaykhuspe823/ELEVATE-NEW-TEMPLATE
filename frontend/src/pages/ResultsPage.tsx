@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { api } from "../lib/api";
 import PlatformIcon from "../components/PlatformIcon";
+import RecommendedCourses from "../components/courses/RecommendedCourses";
 import { buildCourseResources } from "../lib/courseResources";
 import { generateResultsPdf } from "../lib/generateResultsPdf";
 import type { ReferenceSolution } from "../lib/generateResultsPdf";
@@ -257,7 +258,8 @@ export default function ResultsPage() {
       <div className="card mb-5">
         <h2 className="mb-1.5">Weak areas</h2>
         <p className="text-text-2 text-xs mb-3.5">
-          Share these with your faculty — courses are assigned by them, from{" "}
+          Courses to close these gaps are below. Courses you start, and ones your
+          faculty assigns, show up in{" "}
           <Link to="/assignments" className="underline">
             My assignments
           </Link>
@@ -302,6 +304,8 @@ export default function ResultsPage() {
           })
         )}
       </div>
+
+      {testId && <RecommendedCourses testId={testId} />}
 
       {results.questionBreakdown.length > 0 && (
         <div className="card mb-5">

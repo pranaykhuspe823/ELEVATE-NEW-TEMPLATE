@@ -1,8 +1,14 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
-import { EmptyState, ProviderBadge, ScoreRing, Segmented } from "../components/faculty/ui";
+import {
+  AtsBoostBadge,
+  EmptyState,
+  ProviderBadge,
+  ScoreRing,
+  Segmented,
+} from "../components/faculty/ui";
 import { StatPill, StatRow } from "../components/common/StatPill";
 import {
   BookIcon,
@@ -32,16 +38,21 @@ interface Assignment {
   resources: Resource[];
   reason: string | null;
   status: Status;
-  assignedBy: string;
+  progressPercent: number;
+  keywords: string[];
+  atsBoost: number;
+  /** null = started by the student from their test results' recommendations. */
+  assignedBy: string | null;
   createdAt: string;
 }
 
-const STATUS_ORDER: Status[] = ["assigned", "in_progress", "completed"];
-const STATUS_LABEL: Record<Status, string> = {
-  assigned: "To do",
-  in_progress: "Active",
-  completed: "Done",
-};
+// Mirrors backend/src/lib/courseProgress.ts's statusForProgress().
+function statusForProgress(percent: number): Status {
+  if (percent >= 100) return "completed";
+  return percent > 0 ? "in_progress" : "assigned";
+}
+
+const SAVE_DELAY_MS = 500;
 
 const PRIORITY_DOT: Record<string, string> = {
   high: "bg-coral",
@@ -62,64 +73,81 @@ function MetaChip({ children, icon }: { children: ReactNode; icon?: ReactNode })
   );
 }
 
-/** A compact 3-way status control: same idea as `Segmented`, but icon-only
- * so it stays a fixed, small size next to the title instead of stretching
- * with the label text. */
-function StatusToggle({
-  status,
+/** Drag to report how far through the course you are. Saves shortly after
+ * you stop moving it, rather than on every step. */
+function ProgressControl({
+  value,
   title,
   onChange,
 }: {
-  status: Status;
+  value: number;
   title: string;
-  onChange: (status: Status) => void;
+  onChange: (percent: number) => void;
 }) {
+  const [draft, setDraft] = useState(value);
+  const pending = useRef<number | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  useEffect(() => {
+    if (pending.current === null) setDraft(value);
+  }, [value]);
+
+  // Leaving the page mid-drag still saves the last position.
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+      if (pending.current !== null) onChangeRef.current(pending.current);
+    },
+    []
+  );
+
+  function update(next: number) {
+    setDraft(next);
+    pending.current = next;
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      pending.current = null;
+      onChangeRef.current(next);
+    }, SAVE_DELAY_MS);
+  }
+
+  const done = draft >= 100;
   return (
-    <div
-      role="radiogroup"
-      aria-label={`Progress for ${title}`}
-      className="inline-flex items-center gap-1 rounded-full bg-card-2 p-1 flex-none"
-    >
-      {STATUS_ORDER.map((s) => {
-        const active = s === status;
-        const activeClass =
-          s === "completed"
-            ? "bg-teal text-white"
-            : s === "in_progress"
-            ? "bg-amber text-white"
-            : "bg-border-strong text-text";
-        return (
-          <button
-            key={s}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            title={STATUS_LABEL[s]}
-            onClick={() => onChange(s)}
-            className={`w-7 h-7 rounded-full flex items-center justify-center transition ${
-              active ? activeClass : "text-text-3 hover:text-text hover:bg-white/70"
-            }`}
-          >
-            {s === "completed" ? (
-              <CheckIcon width={13} height={13} strokeWidth={3} />
-            ) : s === "in_progress" ? (
-              <span className="w-2.5 h-2.5 rounded-full bg-current" />
-            ) : (
-              <span className="w-2.5 h-2.5 rounded-full border-2 border-current" />
-            )}
-          </button>
-        );
-      })}
+    <div className="flex items-center gap-2.5 w-full sm:w-[240px] flex-none">
+      <input
+        type="range"
+        min={0}
+        max={100}
+        step={5}
+        value={draft}
+        onChange={(e) => update(Number(e.target.value))}
+        aria-label={`Progress on ${title}`}
+        aria-valuetext={`${draft}% complete`}
+        className={`flex-1 h-1.5 cursor-pointer ${done ? "accent-teal" : "accent-lime"}`}
+      />
+      <span
+        className={`w-[52px] text-right font-mono text-xs font-semibold ${done ? "text-teal" : "text-text"}`}
+      >
+        {done ? (
+          <span className="inline-flex items-center gap-0.5">
+            <CheckIcon width={11} height={11} strokeWidth={3} /> 100%
+          </span>
+        ) : (
+          `${draft}%`
+        )}
+      </span>
     </div>
   );
 }
 
 function AssignmentRow({
   assignment: a,
-  onStatus,
+  onProgress,
 }: {
   assignment: Assignment;
-  onStatus: (a: Assignment, status: Status) => void;
+  onProgress: (a: Assignment, percent: number) => void;
 }) {
   const done = a.status === "completed";
   const primary = a.resources.find((r) => r.title);
@@ -128,11 +156,18 @@ function AssignmentRow({
 
   return (
     <li className="px-4 sm:px-5 py-3.5">
-      <div className="flex items-start justify-between gap-3">
-        <h2 className={`min-w-0 text-[15px] font-semibold leading-snug break-words ${done ? "text-text-2" : ""}`}>
-          {a.title}
-        </h2>
-        <StatusToggle status={a.status} title={a.title} onChange={(next) => onStatus(a, next)} />
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
+        <div className="min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <h2 className={`text-[15px] font-semibold leading-snug break-words ${done ? "text-text-2" : ""}`}>
+            {a.title}
+          </h2>
+          <AtsBoostBadge points={a.atsBoost} keywords={a.keywords} />
+        </div>
+        <ProgressControl
+          value={a.progressPercent}
+          title={a.title}
+          onChange={(percent) => onProgress(a, percent)}
+        />
       </div>
 
       <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-text-2">
@@ -142,9 +177,16 @@ function AssignmentRow({
         </MetaChip>
         <MetaChip icon={<BookIcon width={10} height={10} />}>{a.topic}</MetaChip>
         <span className="text-text-3">
-          by {a.assignedBy} · {formatDate(a.createdAt)}
+          {a.assignedBy ? `by ${a.assignedBy}` : "Started by you"} · {formatDate(a.createdAt)}
         </span>
       </p>
+
+      {a.keywords.length > 0 && !done && (
+        <p className="mt-1.5 text-xs text-text-2">
+          When you finish, add <span className="font-medium text-text">{a.keywords.join(", ")}</span>{" "}
+          to your resume and re-upload it to raise your ATS score.
+        </p>
+      )}
 
       {a.reason && (
         <p className="mt-2 border-l-2 border-lime-ink/60 pl-3 text-xs italic text-text-2 leading-relaxed break-words">
@@ -215,14 +257,17 @@ export default function MyAssignmentsPage() {
 
   useEffect(load, []);
 
-  async function changeStatus(a: Assignment, next: Status) {
-    if (a.status === next) return;
+  async function changeProgress(a: Assignment, percent: number) {
     setAssignments(
       (prev) =>
-        prev?.map((x) => (x.id === a.id ? { ...x, status: next } : x)) ?? null
+        prev?.map((x) =>
+          x.id === a.id
+            ? { ...x, progressPercent: percent, status: statusForProgress(percent) }
+            : x
+        ) ?? null
     );
     try {
-      await api.patch(`/api/assignments/${a.id}`, { status: next });
+      await api.patch(`/api/assignments/${a.id}`, { progressPercent: percent });
     } catch {
       load();
     }
@@ -232,16 +277,21 @@ export default function MyAssignmentsPage() {
     const list = assignments ?? [];
     const count = (s: Status) => list.filter((a) => a.status === s).length;
     const completed = count("completed");
-    const hoursLeft = list
-      .filter((a) => a.status !== "completed")
-      .reduce((sum, a) => sum + a.estimatedHours, 0);
+    // Hours left scale with how much of each course is still to go.
+    const hoursLeft = list.reduce(
+      (sum, a) => sum + a.estimatedHours * (1 - a.progressPercent / 100),
+      0
+    );
     return {
       total: list.length,
       todo: count("assigned"),
       active: count("in_progress"),
       completed,
       hoursLeft,
-      percent: list.length === 0 ? 0 : Math.round((completed / list.length) * 100),
+      percent:
+        list.length === 0
+          ? 0
+          : Math.round(list.reduce((sum, a) => sum + a.progressPercent, 0) / list.length),
     };
   }, [assignments]);
 
@@ -273,8 +323,8 @@ export default function MyAssignmentsPage() {
         <div className="max-w-[560px]">
           <EmptyState icon={<BookIcon width={26} height={26} />}>
             {user?.facultyId
-              ? "Nothing assigned to you yet. When your faculty assigns a course, it shows up here."
-              : "Nothing assigned to you yet. Link yourself to your faculty member with their share code, and the courses they assign will show up here."}
+              ? "No courses yet. Take a skill test from your resume analysis and start a recommended course, or wait for your faculty to assign one."
+              : "No courses yet. Take a skill test from your resume analysis to get recommended courses, or link yourself to your faculty member with their share code so they can assign some."}
           </EmptyState>
           {!user?.facultyId && (
             <div className="text-center mt-5">
@@ -304,10 +354,10 @@ export default function MyAssignmentsPage() {
             </h1>
             <p className="text-text font-semibold text-[16px] mt-2 max-w-[560px] leading-relaxed">
               {remaining === 0
-                ? "You're all caught up — every assigned course is complete. Nice work!"
+                ? "You're all caught up — every course is complete. Nice work!"
                 : `${remaining} ${remaining === 1 ? "course" : "courses"} to go · about ${formatHours(
                     stats.hoursLeft
-                  )} of learning left. Your faculty can see your progress.`}
+                  )} of learning left.${user?.facultyId ? " Your faculty can see your progress." : ""}`}
             </p>
           </div>
           <ScoreRing score={stats.percent} size={72} label="% done" />
@@ -344,7 +394,7 @@ export default function MyAssignmentsPage() {
       ) : (
         <ul className="card !p-0 overflow-hidden divide-y divide-border">
           {visible.map((a) => (
-            <AssignmentRow key={a.id} assignment={a} onStatus={changeStatus} />
+            <AssignmentRow key={a.id} assignment={a} onProgress={changeProgress} />
           ))}
         </ul>
       )}

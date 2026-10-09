@@ -1,10 +1,11 @@
 # Elevate — Resume Intelligence Platform
 
-Monorepo: `frontend/` (React + Vite + Tailwind), `backend/` (Node + Express + Prisma/SQLite), `ml-service/` (Python + FastAPI).
+Monorepo: `frontend/` (React + Vite + Tailwind), `backend/` (Node + Express + Prisma/PostgreSQL), `ml-service/` (Python + FastAPI).
 
 ## Prerequisites
 
 - Node.js 18+
+- PostgreSQL 14+ (with an empty database, e.g. `CREATE DATABASE elevate;`)
 - Python 3.10+ (3.12 recommended)
 - [Ollama](https://ollama.com) — used for most LLM calls (field analysis, ATS scoring, test/course generation). Free, runs locally.
 - A free [Groq](https://console.groq.com) API key — used only for the resume-parsing step (fast structuring of the raw upload).
@@ -19,8 +20,8 @@ ollama pull llama3.1:8b
 # backend
 cd backend
 npm install
-npx prisma migrate dev   # creates dev.db (SQLite)
-cp .env.example .env     # fill in GROQ_API_KEY, and GCC_PATH/GPP_PATH if gcc/g++ aren't on PATH
+cp .env.example .env     # set DATABASE_URL to your Postgres DB; fill in GROQ_API_KEY, and GCC_PATH/GPP_PATH if gcc/g++ aren't on PATH
+npx prisma migrate deploy   # creates the tables in that database
 
 # ml-service
 cd ../ml-service
@@ -70,7 +71,7 @@ Fits are cached in `drive_fits` per (drive, resume): editing a drive recomputes 
 
 ## Not included in this repo
 
-- `backend/prisma/dev.db` — local SQLite DB, recreate with `npx prisma migrate dev`.
+- `backend/prisma/sqlite-archive/` — the old SQLite migrations and `dev.db` from before the move to PostgreSQL; kept for reference only, nothing reads them.
 - `storage/resumes/*` — uploaded resume files (user data).
 - `storage/avatars/*` — uploaded profile photos (user data). Anyone signed in can change their name and photo at `/profile`; faculty and college admins can also change their password, and admins their college details.
 - `backend/.env` — contains your Groq API key; copy from `.env.example`.

@@ -13,7 +13,7 @@ const publicUrl = () => (process.env.PUBLIC_URL || 'http://localhost:3006').repl
 
 const save = (id, fields) => {
   const keys = Object.keys(fields);
-  db.prepare(`UPDATE certificates SET ${keys.map((k) => `${k}=?`).join(', ')} WHERE id=?`).run(...keys.map((k) => fields[k]), id);
+  return db.run(`UPDATE certificates SET ${keys.map((k) => `${k}=?`).join(', ')} WHERE id=?`, ...keys.map((k) => fields[k]), id);
 };
 
 function splitName(full) {
@@ -38,8 +38,8 @@ async function post(body) {
 
 /** Send the Credly badge for a certificate. Never throws; the result is stored on the certificate. */
 export async function sendToCredly(certId) {
-  const cert = db.prepare(`SELECT c.*, u.email, co.credly_template_id FROM certificates c
-    JOIN users u ON u.id=c.user_id JOIN courses co ON co.id=c.course_id WHERE c.id=?`).get(certId);
+  const cert = await db.get(`SELECT c.*, u.email, co.credly_template_id FROM certificates c
+    JOIN users u ON u.id=c.user_id JOIN courses co ON co.id=c.course_id WHERE c.id=?`, certId);
   if (!cert || cert.status !== 'valid') return;
   if (!credlyConfigured()) return save(cert.id, { credly_status: 'skipped', credly_error: 'Credly is not connected (CREDLY_ORG_ID / CREDLY_API_TOKEN not set).' });
   if (!cert.credly_template_id) return save(cert.id, { credly_status: 'skipped', credly_error: 'No Credly badge template ID set for this course (Admin > Courses).' });
@@ -60,12 +60,12 @@ export async function sendToCredly(certId) {
     // If Credly rejects the evidence block, issue the badge without it rather than not at all
     if (r.status === 422 && JSON.stringify(r.data).toLowerCase().includes('evidence')) { delete body.evidence; r = await post(body); }
     if (r.ok) {
-      save(cert.id, { credly_status: 'sent', credly_badge_id: r.data?.data?.id || null, credly_error: null, credly_sent_at: new Date().toISOString() });
+      await save(cert.id, { credly_status: 'sent', credly_badge_id: r.data?.data?.id || null, credly_error: null, credly_sent_at: new Date().toISOString() });
     } else {
       const msg = r.data?.data?.message || r.data?.message || (r.data?.data?.errors || []).map((e) => e.message || e).join('; ') || `HTTP ${r.status}`;
-      save(cert.id, { credly_status: 'failed', credly_error: `Credly: ${String(msg).slice(0, 400)}` });
+      await save(cert.id, { credly_status: 'failed', credly_error: `Credly: ${String(msg).slice(0, 400)}` });
     }
   } catch (e) {
-    save(cert.id, { credly_status: 'failed', credly_error: `Could not reach Credly: ${e.message}` });
+    await save(cert.id, { credly_status: 'failed', credly_error: `Could not reach Credly: ${e.message}` });
   }
 }

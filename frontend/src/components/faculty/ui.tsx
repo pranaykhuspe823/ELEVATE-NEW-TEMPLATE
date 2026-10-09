@@ -187,6 +187,59 @@ export function KpiTile({
   );
 }
 
+/** "+6% ATS": what finishing a course (and putting what it teaches on the
+ * resume) adds to the ATS score. Renders nothing when it adds nothing. */
+export function AtsBoostBadge({
+  points,
+  keywords = [],
+  projectedScore,
+}: {
+  points: number;
+  keywords?: string[];
+  projectedScore?: number | null;
+}) {
+  if (points <= 0) return null;
+  const detail = [
+    keywords.length > 0 ? `Covers missing resume keywords: ${keywords.join(", ")}` : null,
+    projectedScore != null ? `ATS score becomes ${projectedScore}/100` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  return (
+    <span
+      title={detail || undefined}
+      className="inline-flex items-center gap-1 rounded-full bg-teal/10 text-teal px-2.5 py-0.5 text-[11.5px] font-semibold leading-5 whitespace-nowrap"
+    >
+      <svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true">
+        <path d="M5 1 9 8H1z" fill="currentColor" />
+      </svg>
+      +{points}% ATS
+    </span>
+  );
+}
+
+export function ProgressBar({
+  percent,
+  className = "",
+}: {
+  percent: number;
+  className?: string;
+}) {
+  const clamped = Math.max(0, Math.min(100, percent));
+  const tone = clamped >= 100 ? "bg-teal" : clamped > 0 ? "bg-lime" : "bg-transparent";
+  return (
+    <div
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={clamped}
+      className={`h-1.5 rounded-full bg-card-2 overflow-hidden ${className}`}
+    >
+      <div className={`h-full rounded-full ${tone}`} style={{ width: `${clamped}%` }} />
+    </div>
+  );
+}
+
 export function ProviderBadge({ provider }: { provider: string }) {
   const style =
     provider === "YouTube"

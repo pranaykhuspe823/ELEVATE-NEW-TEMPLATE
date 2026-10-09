@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -295,6 +295,7 @@ model CoursePlan {
   testAttemptId String
   testAttempt   TestAttempt @relation(fields: [testAttemptId], references: [id])
   modulesJson   String // snapshot of module list at generation time
+  status        String   @default("ready") // generating | ready | failed -- built in the background after a test is submitted
   createdAt     DateTime @default(now())
 
   modules CourseModule[]
@@ -334,6 +335,7 @@ model CourseModule {
   priority        String // high | medium | low
   estimatedHours  Float
   resourcesJson   String // array of {title, url, type}
+  keywordsJson    String     @default("[]") // ATS keywords missing from the resume that this module teaches (JSON string[])
   completed       Boolean    @default(false)
 
   @@map("course_modules")
@@ -356,17 +358,18 @@ model DemoRequest {
   @@map("demo_requests")
 }
 
-// A course a faculty member has put in front of a specific student -- either
-// picked from that student's AI-suggested CourseModules (sourceModuleId set,
-// for traceability) or written from scratch by the faculty member. Kept
-// independent of CoursePlan/TestAttempt so faculty can assign work even to a
-// student who hasn't completed (or ever taken) a test yet.
+// A course on a specific student's plate -- either put there by a faculty
+// member (picked from the student's AI-suggested CourseModules, or written
+// from scratch), or started by the student themself from the recommendations
+// on their test results (assignedById null). sourceModuleId links back to the
+// AI module, if any. Kept independent of CoursePlan/TestAttempt so faculty can
+// assign work even to a student who hasn't completed (or ever taken) a test yet.
 model CourseAssignment {
   id             String    @id @default(uuid())
   studentId      String
   student        User      @relation("StudentAssignments", fields: [studentId], references: [id])
-  assignedById   String
-  assignedBy     User      @relation("FacultyAssignments", fields: [assignedById], references: [id])
+  assignedById   String? // null = self-enrolled by the student
+  assignedBy     User?     @relation("FacultyAssignments", fields: [assignedById], references: [id])
   sourceModuleId String? // AI-suggested CourseModule this was copied from, if any
   title          String
   topic          String
@@ -375,6 +378,10 @@ model CourseAssignment {
   resourcesJson  String    @default("[]")
   reason         String? // faculty's note on why this was assigned
   status         String    @default("assigned") // assigned | in_progress | completed
+  // 0-100, reported by the student (courses live on external sites, so there's
+  // nothing to measure it from). Kept in step with status.
+  progressPercent Int      @default(0)
+  keywordsJson   String    @default("[]") // ATS keywords missing from the resume that this course teaches (JSON string[])
   createdAt      DateTime  @default(now())
   completedAt    DateTime?
 

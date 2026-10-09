@@ -10,6 +10,15 @@ import {
 } from "../services/plagiarismCheck";
 import { parseChosenResources, searchCourses } from "../services/courseSearch";
 import { getFit, latestParsedResumes } from "../services/campusDrives";
+import {
+  atsBoost,
+  baselineFromScore,
+  keywordsInText,
+  latestAtsBaseline,
+  parseKeywords,
+  type AtsBaseline,
+} from "../services/atsBoost";
+import { isAssignmentStatus, progressForStatus } from "../lib/courseProgress";
 
 export const facultyRouter = Router();
 facultyRouter.use(requireAuth, requireFaculty, requireCollegePlan);
@@ -76,9 +85,19 @@ facultyRouter.get("/students", async (req, res) => {
         }
       }
 
-      const openAssignments = await prisma.courseAssignment.count({
-        where: { studentId: student.id, status: { not: "completed" } },
+      const assignments = await prisma.courseAssignment.findMany({
+        where: { studentId: student.id },
+        select: { status: true, progressPercent: true },
       });
+      const openAssignments = assignments.filter((a) => a.status !== "completed").length;
+      // Average across every course on their plate, finished ones counting as 100%.
+      const courseProgress =
+        assignments.length === 0
+          ? null
+          : Math.round(
+              assignments.reduce((sum, a) => sum + a.progressPercent, 0) /
+                assignments.length
+            );
 
       return {
         id: student.id,
@@ -91,6 +110,8 @@ facultyRouter.get("/students", async (req, res) => {
         weakTopicCount,
         latestTestId,
         openAssignments,
+        courseCount: assignments.length,
+        courseProgress,
         plagiarismFlagged,
       };
     })
@@ -170,6 +191,7 @@ facultyRouter.get("/students/:id", async (req, res) => {
   });
 
   let atsScore: number | null = null;
+  let baseline: AtsBaseline | null = null;
   let detectedField: string | null = null;
   let weakTopics: { topic: string; correct: number; total: number }[] = [];
   let suggestedModules: {
@@ -178,6 +200,7 @@ facultyRouter.get("/students/:id", async (req, res) => {
     topic: string;
     priority: string;
     estimatedHours: number;
+    keywordsJson: string;
   }[] = [];
 
   if (resume) {
@@ -196,6 +219,7 @@ facultyRouter.get("/students/:id", async (req, res) => {
       }),
     ]);
     atsScore = score?.totalScore ?? null;
+    baseline = score ? baselineFromScore(score) : null;
     detectedField = analysis?.detectedField ?? null;
 
     if (test) {
@@ -221,10 +245,14 @@ facultyRouter.get("/students/:id", async (req, res) => {
           topic: m.topic,
           priority: m.priority,
           estimatedHours: m.estimatedHours,
+          keywordsJson: m.keywordsJson,
         }));
       }
     }
   }
+
+  const boostOf = (keywordsJson: string) =>
+    baseline ? atsBoost(baseline, parseKeywords(keywordsJson)).points : 0;
 
   const assignments = await prisma.courseAssignment.findMany({
     where: { studentId: student.id },
@@ -254,7 +282,10 @@ facultyRouter.get("/students/:id", async (req, res) => {
       topic: t.topic,
       note: t.note,
     })),
-    suggestedModules,
+    suggestedModules: suggestedModules.map(({ keywordsJson, ...m }) => ({
+      ...m,
+      atsBoost: boostOf(keywordsJson),
+    })),
     assignments: assignments.map((a) => ({
       id: a.id,
       title: a.title,
@@ -263,6 +294,11 @@ facultyRouter.get("/students/:id", async (req, res) => {
       estimatedHours: a.estimatedHours,
       reason: a.reason,
       status: a.status,
+      progressPercent: a.progressPercent,
+      atsBoost: boostOf(a.keywordsJson),
+      // Started by the student from their own recommendations -- not this
+      // faculty member's to edit or remove.
+      selfEnrolled: a.assignedById === null,
       createdAt: a.createdAt,
     })),
   });
@@ -494,6 +530,7 @@ facultyRouter.post("/students/:id/assignments", async (req, res) => {
   let priority = body.priority ?? "medium";
   let estimatedHours = body.estimatedHours ?? 2;
   let resourcesJson = "[]";
+  let keywordsJson: string | null = null;
 
   if (body.sourceModuleId) {
     const source = await prisma.courseModule.findUnique({
@@ -508,6 +545,7 @@ facultyRouter.post("/students/:id/assignments", async (req, res) => {
     priority = source.priority as "high" | "medium" | "low";
     estimatedHours = source.estimatedHours;
     resourcesJson = source.resourcesJson;
+    keywordsJson = source.keywordsJson;
   }
 
   if (!title || !topic) {
@@ -529,6 +567,14 @@ facultyRouter.post("/students/:id/assignments", async (req, res) => {
     ]);
   }
 
+  // A course written from scratch counts toward the ATS keywords it names.
+  if (keywordsJson === null) {
+    const baseline = await latestAtsBaseline(student.id);
+    keywordsJson = JSON.stringify(
+      baseline ? keywordsInText(`${title} ${topic}`, baseline.missing) : []
+    );
+  }
+
   const assignment = await prisma.courseAssignment.create({
     data: {
       studentId: student.id,
@@ -539,6 +585,7 @@ facultyRouter.post("/students/:id/assignments", async (req, res) => {
       priority,
       estimatedHours,
       resourcesJson,
+      keywordsJson,
       reason: body.reason?.trim() || null,
     },
   });
@@ -563,7 +610,7 @@ facultyRouter.patch("/assignments/:id", async (req, res) => {
     estimatedHours?: number;
     reason?: string;
   };
-  if (status && !["assigned", "in_progress", "completed"].includes(status)) {
+  if (status && !isAssignmentStatus(status)) {
     res.status(400).json({ error: "Invalid status." });
     return;
   }
@@ -602,8 +649,14 @@ facultyRouter.patch("/assignments/:id", async (req, res) => {
   const updated = await prisma.courseAssignment.update({
     where: { id: assignment.id },
     data: {
-      ...(status ? { status } : {}),
-      ...(status === "completed" ? { completedAt: new Date() } : {}),
+      ...(status && isAssignmentStatus(status)
+        ? {
+            status,
+            progressPercent: progressForStatus(status, assignment.progressPercent),
+            completedAt:
+              status === "completed" ? assignment.completedAt ?? new Date() : null,
+          }
+        : {}),
       ...(newTitle !== undefined ? { title: newTitle } : {}),
       ...(topic !== undefined ? { topic: topic.trim() } : {}),
       ...(priority !== undefined ? { priority } : {}),

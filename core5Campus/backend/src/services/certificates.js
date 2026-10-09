@@ -14,22 +14,27 @@ const publicUrl = () => (process.env.PUBLIC_URL || 'http://localhost:3006').repl
 
 export const verifyUrl = (code) => `${publicUrl()}/verify/${code}`;
 
-export function issueCertificate({ enrollmentId, score = null }) {
-  const row = db.prepare(`SELECT e.id, e.user_id, e.course_id, u.name, c.title, c.cert_title, c.cert_prefix, c.cpd_hours
-    FROM enrollments e JOIN users u ON u.id=e.user_id JOIN courses c ON c.id=e.course_id WHERE e.id=?`).get(enrollmentId);
-  if (!row) throw new Error('Enrolment not found');
-  const existing = db.prepare("SELECT * FROM certificates WHERE enrollment_id=? AND status='valid'").get(enrollmentId);
-  if (existing) return existing;
-  const yy = String(new Date().getFullYear()).slice(2);
-  let code;
-  do { code = `C5C-${row.cert_prefix || 'CRT'}-${yy}-${randomCode(6)}`; }
-  while (db.prepare('SELECT 1 FROM certificates WHERE code=?').get(code));
-  db.prepare(`INSERT INTO certificates (code, user_id, course_id, enrollment_id, holder_name, course_title, cert_title, cpd_hours, score)
-    VALUES (?,?,?,?,?,?,?,?,?)`).run(code, row.user_id, row.course_id, row.id, row.name, row.title, row.cert_title || row.title, row.cpd_hours, score);
-  db.prepare("UPDATE enrollments SET status='completed' WHERE id=?").run(row.id);
-  const cert = db.prepare('SELECT * FROM certificates WHERE code=?').get(code);
-  sendToCredly(cert.id); // in the background: the learner gets their certificate straight away
-  return cert;
+export async function issueCertificate({ enrollmentId, score = null }) {
+  const cert = await db.tx(async (tx) => {
+    // Lock the enrolment so two simultaneous passes can't both issue a certificate
+    const row = await tx.get(`SELECT e.id, e.user_id, e.course_id, u.name, c.title, c.cert_title, c.cert_prefix, c.cpd_hours
+      FROM enrollments e JOIN users u ON u.id=e.user_id JOIN courses c ON c.id=e.course_id WHERE e.id=? FOR UPDATE OF e`, enrollmentId);
+    if (!row) throw new Error('Enrolment not found');
+    const existing = await tx.get("SELECT * FROM certificates WHERE enrollment_id=? AND status='valid'", enrollmentId);
+    if (existing) return { ...existing, existed: true };
+    const yy = String(new Date().getFullYear()).slice(2);
+    let code;
+    do { code = `C5C-${row.cert_prefix || 'CRT'}-${yy}-${randomCode(6)}`; }
+    while (await tx.get('SELECT 1 FROM certificates WHERE code=?', code));
+    const { rows: [created] } = await tx.run(`INSERT INTO certificates (code, user_id, course_id, enrollment_id, holder_name, course_title, cert_title, cpd_hours, score)
+      VALUES (?,?,?,?,?,?,?,?,?) RETURNING *`, code, row.user_id, row.course_id, row.id, row.name, row.title, row.cert_title || row.title, row.cpd_hours, score);
+    await tx.run("UPDATE enrollments SET status='completed' WHERE id=?", row.id);
+    return created;
+  });
+  const { existed, ...result } = cert;
+  // In the background: the learner gets their certificate straight away
+  if (!existed) sendToCredly(result.id).catch((err) => console.error('[credly]', err));
+  return result;
 }
 
 const GREEN = '#12372A', GOLD = '#C98A00', INK = '#0E1F18', MUTED = '#5B6B62';
@@ -68,7 +73,7 @@ export async function certificatePdf(cert, res) {
   y = doc.y + 8;
   doc.fillColor(INK).font('Helvetica').fontSize(22).text(cert.holder_name, cx - tw / 2, y, { width: tw, align: 'center' });
   y = doc.y + 20;
-  const slug = db.prepare('SELECT slug FROM courses WHERE id=?').get(cert.course_id)?.slug;
+  const slug = (await db.get('SELECT slug FROM courses WHERE id=?', cert.course_id))?.slug;
   const badge = badgeFor(slug);
   if (badge) { SVGtoPDF(doc, badgeSvg(badge).replace(' width="240" height="280"', ''), cx - 55, y, { width: 110, height: 128 }); y += 138; }
 

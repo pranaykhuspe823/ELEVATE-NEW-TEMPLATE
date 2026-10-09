@@ -7,7 +7,7 @@ import {
   type Assignment,
 } from "./types";
 import { BookIcon, CheckIcon, ClockIcon, PencilIcon, TrashIcon } from "./icons";
-import { Badge, CardHeader, EmptyState, Segmented } from "./ui";
+import { AtsBoostBadge, Badge, CardHeader, EmptyState, ProgressBar, Segmented } from "./ui";
 
 interface RowProps {
   onChanged: () => void;
@@ -171,8 +171,16 @@ function AssignmentRow({
           >
             {a.title}
           </p>
+          <div className="flex items-center gap-2 mt-1.5">
+            <ProgressBar percent={a.progressPercent} className="flex-1" />
+            <span className="font-mono text-[11.5px] font-semibold w-9 text-right">
+              {a.progressPercent}%
+            </span>
+          </div>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
             <StatusBadge status={a.status} />
+            {a.selfEnrolled && <Badge tone="gold">Self-started</Badge>}
+            <AtsBoostBadge points={a.atsBoost} />
             <span className="inline-flex items-center gap-1 text-[11.5px] text-text-2">
               <ClockIcon width={11} height={11} /> {a.estimatedHours}h
             </span>
@@ -184,44 +192,47 @@ function AssignmentRow({
             </p>
           )}
         </div>
-        <div className="flex items-center gap-0.5 flex-none">
-          <button
-            type="button"
-            aria-label={`Edit ${a.title}`}
-            className="p-1.5 rounded-lg text-text-2 hover:text-lime hover:bg-lime/10 transition"
-            onClick={() => setEditing(true)}
-          >
-            <PencilIcon width={13} height={13} />
-          </button>
-          {confirming ? (
-            <span className="flex items-center gap-1 pl-0.5">
-              <button
-                type="button"
-                className="text-[11px] font-medium text-coral px-1.5 py-1 rounded hover:bg-coral/10 disabled:opacity-60"
-                disabled={busy}
-                onClick={() => void remove()}
-              >
-                Remove
-              </button>
-              <button
-                type="button"
-                className="text-[11px] text-text-2 px-1.5 py-1"
-                onClick={() => setConfirming(false)}
-              >
-                Keep
-              </button>
-            </span>
-          ) : (
+        {/* Courses the student started themself aren't this faculty member's to change. */}
+        {!a.selfEnrolled && (
+          <div className="flex items-center gap-0.5 flex-none">
             <button
               type="button"
-              aria-label={`Remove ${a.title}`}
-              className="p-1.5 rounded-lg text-text-2 hover:text-coral hover:bg-coral/10 transition"
-              onClick={() => setConfirming(true)}
+              aria-label={`Edit ${a.title}`}
+              className="p-1.5 rounded-lg text-text-2 hover:text-lime hover:bg-lime/10 transition"
+              onClick={() => setEditing(true)}
             >
-              <TrashIcon width={13} height={13} />
+              <PencilIcon width={13} height={13} />
             </button>
-          )}
-        </div>
+            {confirming ? (
+              <span className="flex items-center gap-1 pl-0.5">
+                <button
+                  type="button"
+                  className="text-[11px] font-medium text-coral px-1.5 py-1 rounded hover:bg-coral/10 disabled:opacity-60"
+                  disabled={busy}
+                  onClick={() => void remove()}
+                >
+                  Remove
+                </button>
+                <button
+                  type="button"
+                  className="text-[11px] text-text-2 px-1.5 py-1"
+                  onClick={() => setConfirming(false)}
+                >
+                  Keep
+                </button>
+              </span>
+            ) : (
+              <button
+                type="button"
+                aria-label={`Remove ${a.title}`}
+                className="p-1.5 rounded-lg text-text-2 hover:text-coral hover:bg-coral/10 transition"
+                onClick={() => setConfirming(true)}
+              >
+                <TrashIcon width={13} height={13} />
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </li>
   );
@@ -232,13 +243,23 @@ export default function AssignedCourses({
   onChanged,
   onError,
 }: RowProps & { assignments: Assignment[] }) {
+  const averageProgress =
+    assignments.length === 0
+      ? null
+      : Math.round(
+          assignments.reduce((sum, a) => sum + a.progressPercent, 0) / assignments.length
+        );
   return (
     <section className="card !p-4">
       <CardHeader
         dense
         icon={<BookIcon width={16} height={16} />}
-        title="Assigned courses"
-        subtitle="What this student is working through"
+        title="Courses"
+        subtitle={
+          averageProgress === null
+            ? "What this student is working through"
+            : `${averageProgress}% done on average · progress is reported by the student`
+        }
         right={
           assignments.length > 0 ? (
             <Badge tone="navy">{assignments.length}</Badge>

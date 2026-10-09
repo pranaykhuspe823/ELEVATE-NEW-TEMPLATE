@@ -17,7 +17,7 @@ import {
   SearchIcon,
   SparkIcon,
 } from "./icons";
-import { Badge, CardHeader, ProviderBadge, Segmented } from "./ui";
+import { AtsBoostBadge, Badge, CardHeader, ProviderBadge, Segmented } from "./ui";
 
 interface Props {
   studentId: string;
@@ -474,7 +474,9 @@ export default function CourseFinder({
                 className="flex items-center justify-between gap-4 py-2"
               >
                 <div className="min-w-0">
-                  <p className="text-[13.5px] font-medium">{m.title}</p>
+                  <p className="text-[13.5px] font-medium">
+                    {m.title} <AtsBoostBadge points={m.atsBoost} />
+                  </p>
                   <p className="text-text-2 text-xs">
                     {m.topic} · {m.estimatedHours}h · {m.priority} priority
                   </p>

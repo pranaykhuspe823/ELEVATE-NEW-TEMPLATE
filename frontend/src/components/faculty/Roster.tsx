@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { BookIcon, CheckIcon, CopyIcon, SearchIcon, ShieldIcon, TargetIcon, UsersIcon } from "./icons";
-import { Avatar, Badge, EmptyState, Segmented } from "./ui";
+import { Avatar, Badge, EmptyState, ProgressBar, Segmented } from "./ui";
 import { StatPill, StatRow } from "../common/StatPill";
 import CertificationsCard from "./CertificationsCard";
 import { inputClass } from "./types";
@@ -16,6 +16,9 @@ export interface RosterStudent {
   detectedField: string | null;
   weakTopicCount: number;
   openAssignments: number;
+  courseCount: number;
+  /** Average % done across all their courses; null when they have none. */
+  courseProgress: number | null;
   plagiarismFlagged: boolean;
 }
 
@@ -50,6 +53,31 @@ function AtsCell({ score }: { score: number | null }) {
 
 function Dash() {
   return <span className="text-text-3 text-sm">—</span>;
+}
+
+function CoursesCell({ student: s }: { student: RosterStudent }) {
+  if (s.courseCount === 0 || s.courseProgress === null) {
+    return (
+      <span className="hidden md:inline">
+        <Dash />
+      </span>
+    );
+  }
+  return (
+    <div
+      className="w-[120px]"
+      title={`${s.courseCount} course${s.courseCount === 1 ? "" : "s"}, ${s.courseProgress}% done on average`}
+    >
+      <p className="leading-none text-[13px]">
+        <span className="font-semibold">{s.courseProgress}%</span>
+        <span className="text-text-3 text-xs">
+          {" "}
+          · {s.openAssignments > 0 ? `${s.openAssignments} open` : "all done"}
+        </span>
+      </p>
+      <ProgressBar percent={s.courseProgress} className="mt-1.5" />
+    </div>
+  );
 }
 
 function StudentRow({ student: s }: { student: RosterStudent }) {
@@ -91,15 +119,7 @@ function StudentRow({ student: s }: { student: RosterStudent }) {
             )}
           </div>
           <div>
-            {s.openAssignments > 0 ? (
-              <Badge tone="navy">
-                {s.openAssignments} open course{s.openAssignments === 1 ? "" : "s"}
-              </Badge>
-            ) : (
-              <span className="hidden md:inline">
-                <Dash />
-              </span>
-            )}
+            <CoursesCell student={s} />
           </div>
           <div>
             {s.plagiarismFlagged ? (

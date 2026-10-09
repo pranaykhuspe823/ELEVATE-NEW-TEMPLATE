@@ -439,7 +439,9 @@ export default function AnalysisPage() {
         {atsScore.breakdown.missingKeywords.length > 0 && (
           <p className="text-text-2 text-xs mt-3">
             Missing keywords for {analysis.detectedField}:{" "}
-            {atsScore.breakdown.missingKeywords.join(", ")}
+            {atsScore.breakdown.missingKeywords.join(", ")}. Take the skill test
+            below to get courses that cover them, and see how much each one
+            raises your score.
           </p>
         )}
       </div>

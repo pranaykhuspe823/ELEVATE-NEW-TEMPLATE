@@ -1,21 +1,21 @@
 # Core5Campus
 
 Certification and training platform for teachers, faculty and school leaders.
-Free, self-paced online courses with narrated lessons and a certificate on completion. React + Vite frontend, Node.js/Express API, SQLite, PDF certificates with QR verification.
+Free, self-paced online courses with narrated lessons and a certificate on completion. React + Vite frontend, Node.js/Express API, PostgreSQL, PDF certificates with QR verification.
 
 ## Run it locally
 
-Needs Node.js 18 or newer.
+Needs Node.js 18 or newer and PostgreSQL 14 or newer, with an empty database (e.g. `CREATE DATABASE core5campus;`).
 
 ```bash
 npm run setup                      # installs backend + frontend
-cp backend/.env.example backend/.env
+cp backend/.env.example backend/.env   # set DATABASE_URL to that database
 
-npm run dev:api                    # terminal 1  ->  http://localhost:4000
+npm run dev:api                    # terminal 1  ->  http://localhost:4100
 npm run dev:web                    # terminal 2  ->  http://localhost:3006
 ```
 
-The database is created and seeded on first start.
+The tables are created and seeded on first start.
 
 | | |
 |---|---|

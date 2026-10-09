@@ -15,7 +15,7 @@ import adminRoutes from './routes/admin.js';
 import serviceRoutes from './routes/service.js';
 import { AUDIO_DIR } from './data/lessons/deck.js';
 
-seed();
+await seed();
 
 const app = express();
 app.set('trust proxy', 1);
@@ -63,6 +63,9 @@ if (fs.existsSync(dist)) {
 }
 
 app.use((err, req, res, next) => {
+  // A non-numeric or out-of-range id in the URL (e.g. /events/abc): Postgres
+  // rejects it as a type error, but to the caller it just doesn't exist.
+  if (err.code === '22P02' || err.code === '22003') return res.status(404).json({ error: 'Not found.' });
   console.error(err);
   res.status(500).json({ error: 'Something went wrong on our side. Try again in a moment.' });
 });

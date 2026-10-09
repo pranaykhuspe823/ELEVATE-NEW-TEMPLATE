@@ -378,7 +378,8 @@
 /* v3: centered hero, icon tiles, interview illustration */
 .landing-page .lp-hero-center { grid-template-columns: 1fr; justify-items: center; text-align: center; }
 .landing-page .lp-hero-center .lp-hero-copy { max-width: 900px; }
-.landing-page .lp-hero-center h1 { font-size: clamp(44px, 6.6vw, 88px); margin-top: 0; }
+.landing-page .lp-hero-center .lp-hero-brand { font-size: clamp(32px, 4vw, 52px); }
+.landing-page .lp-hero-center h1 { font-size: clamp(44px, 6.6vw, 88px); margin-top: 6px; }
 .landing-page .lp-hero-center .lp-lede { margin-inline: auto; font-size: 20px; }
 .landing-page .lp-hero-center .lp-hero-cta { justify-content: center; }
 .landing-page .lp-hero { padding: 104px 0 120px; }
