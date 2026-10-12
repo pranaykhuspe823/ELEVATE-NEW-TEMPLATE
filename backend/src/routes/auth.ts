@@ -10,6 +10,7 @@ import {
 } from "../lib/session";
 import { requireAuth } from "../middleware/auth";
 import { serializeUser } from "../lib/serializeUser";
+import { planBlockFor } from "../lib/orgAccess";
 
 export const authRouter = Router();
 
@@ -48,6 +49,13 @@ authRouter.post("/google", async (req, res) => {
       });
     }
 
+    // A student whose college's plan has ended gets no session at all.
+    const block = await planBlockFor(user.id);
+    if (block) {
+      res.status(402).json(block);
+      return;
+    }
+
     const token = signSession(user.id);
     res.cookie(SESSION_COOKIE_NAME, token, SESSION_COOKIE_OPTIONS);
     res.json({ user: serializeUser(user) });
@@ -67,7 +75,7 @@ authRouter.get("/me", requireAuth, async (req, res) => {
     res.status(401).json({ error: "Not authenticated" });
     return;
   }
-  res.json({ user: serializeUser(user) });
+  res.json({ user: serializeUser(user), planBlock: req.planBlock ?? null });
 });
 
 // Faculty accounts are a fully separate credential system from student
@@ -112,6 +120,23 @@ authRouter.post("/faculty/register", async (req, res) => {
     }
 
     // Placeholder row provisioned by a college admin -- complete setup.
+    const block = await planBlockFor(existing.id);
+    if (block) {
+      res.status(402).json(block);
+      return;
+    }
+    // Knowing the email isn't enough (anyone could claim the account): the
+    // TPO shares the faculty code from their roster as proof.
+    if (
+      typeof code !== "string" ||
+      !existing.facultyCode ||
+      code.trim().toUpperCase() !== existing.facultyCode
+    ) {
+      res.status(403).json({
+        error: "Enter the faculty code your college's TPO gave you.",
+      });
+      return;
+    }
     const passwordHash = await bcrypt.hash(password, 10);
     const updated = await prisma.user.update({
       where: { id: existing.id },
@@ -184,6 +209,12 @@ authRouter.post("/faculty/login", async (req, res) => {
     return;
   }
 
+  const block = await planBlockFor(user.id);
+  if (block) {
+    res.status(402).json(block);
+    return;
+  }
+
   const token = signSession(user.id);
   res.cookie(SESSION_COOKIE_NAME, token, SESSION_COOKIE_OPTIONS);
   res.json({ user: serializeUser(user) });
@@ -216,9 +247,12 @@ authRouter.post("/college/login", async (req, res) => {
     return;
   }
 
+  // The TPO still signs in after the trial ends -- but planBlock tells the
+  // app to send them straight to buying a plan, and the API refuses
+  // everything except billing until they do.
   const token = signSession(user.id);
   res.cookie(SESSION_COOKIE_NAME, token, SESSION_COOKIE_OPTIONS);
-  res.json({ user: serializeUser(user) });
+  res.json({ user: serializeUser(user), planBlock: await planBlockFor(user.id) });
 });
 
 // Student links themselves to a faculty member using the code that faculty
@@ -245,6 +279,11 @@ authRouter.post("/join-faculty", requireAuth, async (req, res) => {
   });
   if (!faculty || faculty.role !== "FACULTY") {
     res.status(404).json({ error: "No faculty found with that code." });
+    return;
+  }
+  const block = await planBlockFor(faculty.id);
+  if (block) {
+    res.status(402).json(block);
     return;
   }
 

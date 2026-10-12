@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { mlAuthHeaders } from "../lib/mlService";
 import { prisma } from "../lib/prisma";
 import type { ParsedResume } from "../schemas/resume";
 
@@ -18,7 +19,7 @@ async function scoreRules(
 ): Promise<RuleScores> {
   const res = await fetch(`${ML_SERVICE_URL}/score-rules`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...mlAuthHeaders() },
     body: JSON.stringify({
       contact: parsed.contact,
       summary: parsed.summary,

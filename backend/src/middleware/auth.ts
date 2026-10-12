@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { SESSION_COOKIE_NAME, verifySession } from "../lib/session";
 import { prisma } from "../lib/prisma";
 import { computeState } from "../services/subscription";
+import { allowedWhileBlocked, planBlockFor } from "../lib/orgAccess";
 
 export async function requireAuth(
   req: Request,
@@ -28,6 +29,15 @@ export async function requireAuth(
     id: user.id,
     role: user.role as "STUDENT" | "FACULTY" | "COLLEGE_ADMIN",
   };
+
+  // Checked on every request against server time, so an ended trial locks
+  // existing sessions too -- not just new logins.
+  const block = await planBlockFor(user.id);
+  req.planBlock = block;
+  if (block && !allowedWhileBlocked(block, req.originalUrl.split("?")[0])) {
+    res.status(402).json(block);
+    return;
+  }
   next();
 }
 

@@ -1,20 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
+import { openCheckout } from "../lib/razorpay";
 import { useAuth } from "../lib/auth";
 import {
   formatRupees,
   phaseDotClass,
   phaseLabel,
   planLabel,
-  pluralDays,
   termLabel,
   type Billing,
+  type BillingCycle,
   type SubscriptionInfo,
 } from "../components/college/types";
 import { errorMessage, formatDate } from "../components/faculty/types";
 import { CheckIcon } from "../components/faculty/icons";
-import { Badge } from "../components/faculty/ui";
+import { Badge, Segmented } from "../components/faculty/ui";
 
 interface Plan {
   key: string;
@@ -52,16 +53,33 @@ function DetailRow({ label, value, strong }: { label: string; value: string; str
   );
 }
 
+function formatDateTime(iso: string) {
+  return new Date(iso).toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export default function CollegeSubscribePage() {
-  const { user } = useAuth();
+  const { user, planBlock, setPlanBlock } = useAuth();
   const navigate = useNavigate();
   const [plans, setPlans] = useState<Plan[] | null>(null);
   const [billing, setBilling] = useState<Billing | null>(null);
   const [interestedPlanKey, setInterestedPlanKey] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
-  const [busy, setBusy] = useState<string | null>(null); // plan key, or "pay"
+  const [busy, setBusy] = useState<string | null>(null); // plan key, "pay", or "pay:<plan key>"
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [cycle, setCycle] = useState<BillingCycle>("yearly");
+  const [cycleTouched, setCycleTouched] = useState(false);
+
+  // Default the toggle to however they paid last time.
+  useEffect(() => {
+    if (!cycleTouched && subscription?.paidAt) setCycle(subscription.billingCycle);
+  }, [subscription, cycleTouched]);
 
   const isAdmin = user?.role === "COLLEGE_ADMIN";
 
@@ -115,7 +133,15 @@ export default function CollegeSubscribePage() {
     );
   }
 
+  // Only during the free trial is switching plans free. Once it has ended
+  // (or in a paid term), picking a plan means paying for it.
+  const mustPay = !!subscription && subscription.phase !== "trialing";
+
   async function choosePlan(planKey: string) {
+    if (mustPay) {
+      await pay(planKey);
+      return;
+    }
     setBusy(planKey);
     setError(null);
     setNotice(null);
@@ -135,27 +161,79 @@ export default function CollegeSubscribePage() {
     }
   }
 
-  async function pay() {
-    setBusy("pay");
+  /** Razorpay: the server creates the order (and sets the price), Checkout
+   * takes the payment, and the server checks Razorpay's signature before
+   * the plan activates. planKey: pay for a different plan than the current. */
+  async function pay(planKey?: string) {
+    setBusy(planKey ? `pay:${planKey}` : "pay");
     setError(null);
     setNotice(null);
     try {
+      const { data: order } = await api.post<{
+        keyId: string;
+        orderId: string;
+        amountPaise: number;
+        currency: string;
+        plan: { key: string; name: string; facultySeats: number };
+        prefill: { name: string; email: string; contact: string };
+        collegeName: string;
+      }>("/api/colleges/subscription/order", { ...(planKey ? { planKey } : {}), billingCycle: cycle });
+
+      const result = await openCheckout({
+        key: order.keyId,
+        order_id: order.orderId,
+        amount: order.amountPaise,
+        currency: order.currency,
+        name: "Elevate",
+        description: `${order.plan.name} plan · ${order.plan.facultySeats} faculty seats · ${
+          cycle === "monthly" ? "1 month" : "1 year"
+        }`,
+        prefill: order.prefill,
+        notes: { college: order.collegeName },
+        theme: { color: "#3547FF" },
+      });
+      if (!result) return; // closed without paying
+
       const { data } = await api.post<{ subscription: SubscriptionInfo }>(
-        "/api/colleges/subscription/pay"
+        "/api/colleges/subscription/verify",
+        result
       );
       const until = data.subscription.termEndsAt
         ? formatDate(data.subscription.termEndsAt)
         : "";
-      setNotice(`Paid plan activated${until ? ` — covered until ${until}` : ""}.`);
+      setNotice(
+        `Payment received — ${planLabel(data.subscription.planKey)} plan active${
+          until ? ` until ${until}` : ""
+        }.`
+      );
+      setPlanBlock(null); // access restored for the college
       loadMe();
     } catch (err) {
-      setError(errorMessage(err, "Couldn't activate the paid plan."));
+      setError(errorMessage(err, "Payment didn't go through. You haven't been charged twice — try again."));
     } finally {
       setBusy(null);
     }
   }
 
   const term = billing ? termLabel(billing.termMonths) : "1-year";
+  const perLabel = cycle === "monthly" ? "month" : "year";
+  const priceOf = (p: { priceInPaiseMonthly: number; priceInPaiseYearly: number }) =>
+    cycle === "monthly" ? p.priceInPaiseMonthly : p.priceInPaiseYearly;
+  const cycleToggle = (
+    <Segmented<BillingCycle>
+      label="Billing cycle"
+      size="sm"
+      value={cycle}
+      onChange={(v) => {
+        setCycle(v);
+        setCycleTouched(true);
+      }}
+      options={[
+        { value: "monthly", label: "Monthly" },
+        { value: "yearly", label: "Yearly" },
+      ]}
+    />
+  );
   const currentPlan = plans?.find((p) => p.key === subscription?.planKey);
 
   return (
@@ -165,10 +243,20 @@ export default function CollegeSubscribePage() {
         {subscription ? "Your plan" : "Choose your plan"}
       </h1>
       <p className="text-text-2 text-sm mb-5 max-w-[620px]">
-        Every plan is a {term} term. Faculty seats are capped by your plan, and
-        you can switch plans any time as your placement cell grows.
+        Your college gets one {billing?.trialDays ?? 7}-day free trial, which started
+        when you registered. Pay monthly or yearly — faculty seats are capped by
+        your plan.
       </p>
 
+      {planBlock?.code === "PLAN_REQUIRED" && (
+        <div
+          role="alert"
+          className="mb-4 rounded-xl border border-coral/30 bg-coral/5 px-4 py-3 text-sm text-coral"
+        >
+          <strong>{planBlock.error}</strong> Your faculty and students can't sign in
+          until you do.
+        </div>
+      )}
       {notice && (
         <div
           role="status"
@@ -192,17 +280,15 @@ export default function CollegeSubscribePage() {
           {[
             {
               title: `${billing.trialDays}-day free trial`,
-              body: "Start on any plan with no payment. Everything is unlocked.",
+              body: "Starts the moment your college registers. Everything is unlocked.",
             },
             {
-              title: `Pay within ${pluralDays(billing.graceDays)}`,
-              body: `When the trial ends you have ${pluralDays(
-                billing.graceDays
-              )} more to activate the paid plan.`,
+              title: "Locks when it ends",
+              body: `We email you daily in the last 3 days. At the end, access stops for everyone until you buy a plan.`,
             },
             {
-              title: `${term} term`,
-              body: "Paid plans run for a full year. Renew before it ends to keep going.",
+              title: "Monthly or yearly",
+              body: "Pay for a month or a year at a time. Renew before it ends to keep going.",
             },
           ].map((step, i) => (
             <li
@@ -238,7 +324,11 @@ export default function CollegeSubscribePage() {
                   <DetailRow label="Started" value={formatDate(subscription.activatedAt)} />
                 )}
                 {!subscription.paidAt && subscription.trialEndsAt && (
-                  <DetailRow label="Free trial ends" value={formatDate(subscription.trialEndsAt)} />
+                  <DetailRow
+                    label={subscription.phase === "trialing" ? "Free trial ends" : "Free trial ended"}
+                    value={formatDateTime(subscription.trialEndsAt)}
+                    strong={subscription.phase !== "trialing"}
+                  />
                 )}
                 {subscription.paidAt && subscription.termEndsAt && (
                   <DetailRow
@@ -246,7 +336,7 @@ export default function CollegeSubscribePage() {
                     value={formatDate(subscription.termEndsAt)}
                   />
                 )}
-                {subscription.needsPayment && subscription.graceEndsAt && (
+                {subscription.paidAt && subscription.needsPayment && subscription.graceEndsAt && (
                   <DetailRow
                     label={
                       subscription.phase === "expired"
@@ -263,12 +353,15 @@ export default function CollegeSubscribePage() {
             </div>
 
             <div className="bg-bg/70 border-t md:border-t-0 md:border-l border-border p-5 sm:p-6 flex flex-col justify-center gap-3">
-              {subscription.yearlyPricePaise !== null && (
+              {cycleToggle}
+              {subscription.yearlyPricePaise !== null && subscription.monthlyPricePaise !== null && (
                 <p>
                   <span className="font-display font-semibold text-[26px]">
-                    {formatRupees(subscription.yearlyPricePaise)}
+                    {formatRupees(
+                      cycle === "monthly" ? subscription.monthlyPricePaise : subscription.yearlyPricePaise
+                    )}
                   </span>
-                  <span className="text-text-2 text-sm"> / {term === "1-year" ? "year" : term}</span>
+                  <span className="text-text-2 text-sm"> / {perLabel}</span>
                 </p>
               )}
               <button
@@ -280,16 +373,16 @@ export default function CollegeSubscribePage() {
                 onClick={() => void pay()}
               >
                 {busy === "pay"
-                  ? "Activating…"
+                  ? "Opening payment…"
                   : subscription.phase === "active"
-                  ? "Renew early"
+                  ? `Renew early · 1 ${perLabel}`
                   : subscription.paidAt
-                  ? "Renew plan"
-                  : "Activate paid plan"}
+                  ? `Renew for 1 ${perLabel}`
+                  : `Pay for 1 ${perLabel}`}
               </button>
               <p className="text-text-2 text-xs leading-relaxed">
-                Dev mode · payments aren't connected yet, so this activates the
-                plan without charging.
+                Secure payment by Razorpay — UPI, cards, net banking and
+                wallets. The plan activates as soon as payment is confirmed.
               </p>
             </div>
           </div>
@@ -300,9 +393,12 @@ export default function CollegeSubscribePage() {
         <p className="text-text-2 text-sm">Loading…</p>
       ) : (
         <>
-          <h2 className="text-[18px] mb-3">
-            {subscription ? "Switch plan" : "Pick a plan to start your free trial"}
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <h2 className="text-[18px]">
+              {mustPay ? "Buy a plan" : subscription ? "Switch plan" : "Pick a plan"}
+            </h2>
+            {cycleToggle}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {plans.map((plan) => {
               const current = plan.key === subscription?.planKey;
@@ -326,16 +422,15 @@ export default function CollegeSubscribePage() {
                     <span className="text-text-2 text-sm"> /month</span>
                   </p>
                   <p className="text-text-2 text-[13px] mt-0.5">
-                    Billed yearly · {formatRupees(plan.priceInPaiseYearly)} / year
+                    {cycle === "monthly"
+                      ? "Billed monthly"
+                      : `Billed yearly · ${formatRupees(plan.priceInPaiseYearly)} / year`}
                   </p>
                   <p className="text-text-2 text-[13px] leading-snug mt-3">{plan.description}</p>
                   <ul className="mt-3 mb-5 flex flex-col gap-1.5 text-[13px]">
                     {[
                       `${plan.facultySeats} faculty seats`,
-                      `${term} term`,
-                      ...(!subscription && billing
-                        ? [`${billing.trialDays}-day free trial, no payment`]
-                        : []),
+                      cycle === "monthly" ? "1-month term" : `${term} term`,
                     ].map((f) => (
                       <li key={f} className="flex items-center gap-2">
                         <CheckIcon width={13} height={13} className="text-teal flex-none" />
@@ -351,17 +446,17 @@ export default function CollegeSubscribePage() {
                     disabled={busy !== null || current}
                     onClick={() => void choosePlan(plan.key)}
                   >
-                    {busy === plan.key
+                    {busy === plan.key || busy === `pay:${plan.key}`
                       ? "Working…"
                       : current
                       ? "Current plan"
+                      : mustPay
+                      ? `Buy ${plan.name} · ${formatRupees(priceOf(plan))}/${cycle === "monthly" ? "mo" : "yr"}`
                       : subscription
                       ? plan.facultySeats > (currentPlan?.facultySeats ?? 0)
                         ? `Upgrade to ${plan.name}`
                         : `Switch to ${plan.name}`
-                      : billing
-                      ? `Start ${billing.trialDays}-day free trial`
-                      : "Start free trial"}
+                      : `Choose ${plan.name}`}
                   </button>
                 </div>
               );

@@ -6,6 +6,7 @@ import CollegeHero from "../components/college/CollegeHero";
 import CollegeLoginGate from "../components/college/CollegeLoginGate";
 import FacultyRoster from "../components/college/FacultyRoster";
 import PlanBanner from "../components/college/PlanBanner";
+import SchoolCertificationsCard from "../components/college/SchoolCertificationsCard";
 import type {
   Billing,
   CollegeInfo,
@@ -131,6 +132,8 @@ export default function CollegeDashboardPage() {
           />
         </div>
       </div>
+
+      <SchoolCertificationsCard />
     </div>
   );
 }

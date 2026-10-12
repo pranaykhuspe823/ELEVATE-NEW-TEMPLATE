@@ -1,6 +1,7 @@
 import fs from "fs";
 import FormData from "form-data";
 import fetch from "node-fetch";
+import { mlAuthHeaders } from "../lib/mlService";
 import { prisma } from "../lib/prisma";
 import { generateStructured } from "../lib/llm";
 import {
@@ -19,7 +20,7 @@ async function extractText(filePath: string, filename: string): Promise<string> 
   const res = await fetch(`${ML_SERVICE_URL}/extract-text`, {
     method: "POST",
     body: form as any,
-    headers: form.getHeaders(),
+    headers: { ...form.getHeaders(), ...mlAuthHeaders() },
   });
   if (!res.ok) {
     throw new Error(`Text extraction failed: ${res.status} ${await res.text()}`);

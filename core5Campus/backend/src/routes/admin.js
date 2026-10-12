@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { Router } from 'express';
 import { db } from '../db.js';
-import { requireAdmin } from '../middleware/auth.js';
+import { requireAdmin, USER_WITH_SCHOOL } from '../middleware/auth.js';
 import { str, bad, wrap } from '../util.js';
 import { issueCertificate } from '../services/certificates.js';
 import { credlyConfigured, sendToCredly } from '../services/credly.js';
@@ -119,8 +119,9 @@ r.put('/lessons/:slug/:m/:l', wrap(async (req, res) => {
 /* Certificates */
 r.get('/certificates', wrap(async (req, res) => {
   res.json(await db.all(`SELECT c.id, c.code, c.holder_name, c.cert_title, c.course_title, c.score, c.status, c.issued_at, u.email,
-      c.credly_status, c.credly_error, c.credly_sent_at
-    FROM certificates c JOIN users u ON u.id=c.user_id ORDER BY c.id DESC LIMIT 500`));
+      c.credly_status, c.credly_error, c.credly_sent_at, col.name AS college_name
+    FROM certificates c JOIN users u ON u.id=c.user_id LEFT JOIN public.colleges col ON col.id=c.college_id
+    ORDER BY c.id DESC LIMIT 500`));
 }));
 r.get('/credly', (req, res) => res.json({ connected: credlyConfigured(), sandbox: process.env.CREDLY_SANDBOX === 'true' }));
 r.post('/certificates/:id/credly', wrap(async (req, res) => {
@@ -139,11 +140,14 @@ r.patch('/certificates/:id', wrap(async (req, res) => {
 /* Learners: password reset. The site sends no email, so the admin passes the temporary password on to the learner. */
 r.post('/users/reset-password', wrap(async (req, res) => {
   const email = str(req.body?.email, 160).toLowerCase();
-  const u = await db.get('SELECT id, name, email, role FROM users WHERE email=?', email);
+  const u = await db.get(USER_WITH_SCHOOL + ' WHERE u.email=?', email);
   if (!u) return bad(res, 'No account uses this email.', 404);
   if (u.role === 'admin') return bad(res, 'Admin passwords cannot be reset here.');
+  const staff = await db.get("SELECT 1 FROM public.users WHERE email=? AND role IN ('FACULTY','COLLEGE_ADMIN')", email);
+  if (staff) return bad(res, 'This teacher signs in with their Elevate account. Reset the password in Elevate.');
   const temp = crypto.randomBytes(9).toString('base64url');
-  await db.run('UPDATE users SET password_hash=? WHERE id=?', bcrypt.hashSync(temp, 10), u.id);
+  // Unlinks an account whose Elevate faculty access has ended, so they can sign in with Core5Campus credentials again.
+  await db.run('UPDATE users SET password_hash=?, elevate_user_id=NULL WHERE id=?', bcrypt.hashSync(temp, 10), u.id);
   res.json({ name: u.name, email: u.email, temp_password: temp });
 }));
 

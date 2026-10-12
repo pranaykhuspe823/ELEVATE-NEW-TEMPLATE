@@ -63,7 +63,8 @@ function GoogleSignInTrigger({
 }: {
   children: ReactNode;
   onSignedIn: () => void;
-  onError?: () => void;
+  /** message: the server's reason when it refused (e.g. plan ended). */
+  onError?: (message?: string) => void;
 }) {
   const { setUser } = useAuth();
 
@@ -75,8 +76,9 @@ function GoogleSignInTrigger({
       });
       setUser(data.user);
       onSignedIn();
-    } catch {
-      onError?.();
+    } catch (err) {
+      const message = (err as { response?: { data?: { error?: string } } }).response?.data?.error;
+      onError?.(message);
     }
   }
 
@@ -84,7 +86,7 @@ function GoogleSignInTrigger({
     <div className="lp-gwrap">
       {children}
       <div className="lp-gover">
-        <GoogleLogin onSuccess={handleSuccess} onError={onError} />
+        <GoogleLogin onSuccess={handleSuccess} onError={() => onError?.()} />
       </div>
     </div>
   );
@@ -109,7 +111,7 @@ function AnalyzeButton({ size = "md", onError }: { size?: "md" | "lg"; onError: 
         onError(null);
         navigate("/upload");
       }}
-      onError={() => onError("Google sign-in didn't complete. Try again, or check that pop-ups are allowed.")}
+      onError={(m) => onError(m ?? "Google sign-in didn't complete. Try again, or check that pop-ups are allowed.")}
     >
       <button type="button" className={cls} tabIndex={-1} aria-hidden="true">
         <GoogleIcon />
@@ -137,7 +139,7 @@ function LoginMenu({ open, onToggle }: { open: boolean; onToggle: () => void }) 
             onToggle();
             navigate("/upload");
           }}
-          onError={() => setError("Google sign-in didn't complete. Try again.")}
+          onError={(m) => setError(m ?? "Google sign-in didn't complete. Try again.")}
         >
           <button type="button" className="lp-login-item" tabIndex={-1} aria-hidden="true">
             <GoogleIcon />
@@ -631,8 +633,8 @@ export default function LandingPage() {
               <h2>College <span className="lp-hl">plans</span></h2>
               <Squiggle color="#FF7AB6" />
               <p className="lp-sec-p">
-                Every plan runs for one year and starts with a 7-day free trial. Plans differ only in
-                faculty seats. Students are always free.
+                Pay monthly or yearly — plans differ only in faculty seats. Students are always
+                free. Each college gets one 7-day free trial, starting the day you register.
               </p>
             </div>
             <div className="lp-plans">
@@ -645,7 +647,7 @@ export default function LandingPage() {
                     {inr(p.monthly)}
                     <span>/month</span>
                   </p>
-                  <p className="lp-small">{inr(p.monthly * 12)} billed yearly</p>
+                  <p className="lp-small">monthly, or {inr(p.monthly * 12)} billed yearly</p>
                   <p className="lp-seats">{p.seats} faculty seats</p>
                   <ul className="lp-ticks lp-ticks-sm">
                     <li><span className="lp-tick white"><Check /></span>Unlimited students</li>
@@ -653,7 +655,7 @@ export default function LandingPage() {
                     <li><span className="lp-tick white"><Check /></span>Copy checking across your college</li>
                   </ul>
                   <button type="button" className={`lp-btn ${p.name === "Growth" ? "lp-btn-primary" : "lp-btn-white"} lp-btn-full`} onClick={() => navigate("/college/register")}>
-                    Start free trial
+                    Choose {p.name}
                   </button>
                 </div>
               ))}

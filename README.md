@@ -55,9 +55,27 @@ Open `http://localhost:5173/` — that's the landing page. "Analyze my resume" t
 
 ## Plans & billing
 
-Every college plan is a **1-year term** that starts with a **7-day free trial**. After the trial (or after a paid year runs out) there's a **3-day grace period** to pay; past that the plan is *expired*: the college can't add faculty and its faculty dashboards pause (`402`) until it pays. The lengths live in `BILLING` in `backend/src/data/plans.ts`; the phase logic (trialing → grace → active → expired) is in `backend/src/services/subscription.ts` and is computed from dates, so there's no cron job. Prices are the monthly rate, billed for 12 months up front.
+**One registration per college.** `colleges.nameKey` (the name with case, spaces, punctuation and accents stripped) and `colleges.domainKey` (the bare website domain, if given) are unique in the database, so "Sardar Patel Institute of Technology" and "sardar patel institute-of-technology" can't both be registered, by sign-up or by renaming in the profile. Registration answers 409 `COLLEGE_EXISTS`. Only deleting the existing college frees the name. Rules: `backend/src/lib/collegeKeys.ts`.
 
-**Payments aren't connected yet.** `POST /api/colleges/subscription/pay` marks the plan paid for a full term without charging anyone. Replace it with a Razorpay/Stripe checkout + webhook before going live.
+**One free trial per college, not per plan.** It starts the moment the college registers and lasts exactly **7 days** (server time). The subscription row is created at registration with `activatedAt` = registration time and `trialEndsAt` = +7 days, and a database trigger (`lock_trial_dates`, migration `trial_dates_locked`) rejects any later change to either, so the trial can't be paused, extended or restarted. Switching plans during the trial never touches those dates.
+
+When the trial ends unpaid there is **no grace period**: access stops at once, checked on every request in `requireAuth` (`backend/src/lib/orgAccess.ts`), so open sessions lock too.
+- The college admin (TPO) can still sign in, but every page sends them to `/college/subscribe` and the API allows only billing endpoints until they pay.
+- Faculty and students of that college (a student belongs to the college of the faculty member they linked to) can't sign in and see "Your organisation's plan has ended". Users with no college are unaffected.
+- Paying restores access for everyone immediately.
+
+Reminder emails go to the TPO daily for the last 3 days (3, 2 and 1 days left) and once when the trial ends, from a job that runs every 15 minutes (`backend/src/services/trialReminders.ts`). Each send is recorded on the subscription so it's never sent twice. It needs `SMTP_*` set.
+
+Paid plans are bought **monthly** (the plan's monthly rate, 1-month term) **or yearly** (12x, 12-month term), chosen per payment (`billingCycle` on the order and the `payments` row). After a paid term ends there are 3 days (`BILLING.graceDays`) to renew. Payments are one-off Razorpay orders, not auto-debit, so monthly plans are renewed by paying again each month. The lengths live in `BILLING` in `backend/src/data/plans.ts`.
+
+**Payments use Razorpay.** Set `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` in `backend/.env` (test keys `rzp_test_...` while developing). The flow:
+
+1. `POST /api/colleges/subscription/order` creates a Razorpay order priced from `PLANS` on the server (renew the current plan, or pass `planKey` to switch/upgrade; `billingCycle` is `monthly` or `yearly`) and records it in `payments`.
+2. The subscribe page opens Razorpay Checkout.
+3. `POST /api/colleges/subscription/verify` checks Razorpay's signature, then starts or extends the 1-year term (`applyPaidOrder` in `backend/src/services/billing.ts`).
+4. `POST /api/webhooks/razorpay` does the same from Razorpay's side (events `payment.captured`, `payment.failed`, `order.paid`; set `RAZORPAY_WEBHOOK_SECRET`), so a closed tab after paying still activates the plan. Applying a payment twice is a no-op.
+
+Renewing the same plan early extends from the current term's end. Switching plans during a paid term requires paying for the new plan, which starts a fresh term (no proration). Faculty seats are capped per plan (Starter 2, Growth 3, Campus 4) when adding faculty and when switching plans.
 
 ## Campus drives
 
@@ -68,6 +86,10 @@ The placement cell (TPO / college admin) adds the companies visiting campus at `
 - **TPO** sees college-wide totals only (fit buckets, average, most-missed skills) — individual results stay with each student's faculty member.
 
 Fits are cached in `drive_fits` per (drive, resume): editing a drive recomputes them, and a newly uploaded resume gets a fresh row. An expired college plan pauses this like everything else (TPO can still read, not write). There are no eligibility rules (CGPA, branch, backlogs) yet.
+
+## Core5 Campus (faculty certification)
+
+`core5Campus/` runs against **this same database**, in its own `core5` schema. Faculty and TPOs sign in there with their Elevate email and password. Each certificate is stamped with the teacher's college when it's issued: the teacher sees their own on the faculty dashboard, the college's TPO sees their college's on the college dashboard (`GET /api/colleges/certifications`), and no college can see another's. Start it after Elevate's migrations have run; see `core5Campus/README.md`.
 
 ## Not included in this repo
 

@@ -78,15 +78,15 @@ export default function AddFacultyCard({
       {!canAdd ? (
         <div className="rounded-2xl border border-dashed border-border-strong bg-bg/60 px-4 py-5 text-center">
           <p className="text-text-2 text-sm leading-relaxed">
-            {subscription
-              ? "Your plan has expired. Activate the paid plan to add faculty again."
-              : "Start your free trial to begin adding faculty."}
+            {subscription && !subscription.paidAt
+              ? "Your free trial has ended. Buy a plan to add faculty again."
+              : "Your plan has expired. Renew it to add faculty again."}
           </p>
           <Link
             to="/college/subscribe"
             className="btn btn-primary btn-small inline-block mt-3 no-underline"
           >
-            {subscription ? "Activate paid plan" : "Start free trial"}
+            {subscription?.paidAt ? "Renew plan" : "Buy a plan"}
           </Link>
         </div>
       ) : seatsFull ? (
@@ -139,8 +139,9 @@ export default function AddFacultyCard({
           </div>
           <p className="flex items-start gap-2 text-[13px] text-text-2 leading-relaxed">
             <UsersIcon width={15} height={15} className="flex-none mt-0.5" />
-            They sign in on the Faculty page with this email and set their own
-            password — no invite code needed.
+            Share their faculty code (shown in the roster) with them privately.
+            They register on the Faculty page with this email and that code, and
+            set their own password.
           </p>
           <button
             type="submit"

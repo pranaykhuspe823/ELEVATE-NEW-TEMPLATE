@@ -19,6 +19,33 @@ const COMPILE_TIMEOUT_MS = 10000;
 const GCC_BIN = process.env.GCC_PATH || "gcc";
 const GPP_BIN = process.env.GPP_PATH || "g++";
 
+// Candidate code must never inherit the backend's environment -- it holds
+// DATABASE_URL, SESSION_SECRET and API keys, and `print(os.environ)` would
+// leak them all. Pass only what compilers/interpreters need to start.
+const SANDBOX_ENV_KEYS = [
+  "PATH",
+  "SystemRoot",
+  "SYSTEMROOT",
+  "windir",
+  "TEMP",
+  "TMP",
+  "TMPDIR",
+  "LANG",
+  "PATHEXT",
+  "COMSPEC",
+];
+function sandboxEnv(cwd: string): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {};
+  for (const key of SANDBOX_ENV_KEYS) {
+    if (process.env[key] !== undefined) env[key] = process.env[key];
+  }
+  env.HOME = cwd;
+  env.USERPROFILE = cwd;
+  env.PYTHONDONTWRITEBYTECODE = "1";
+  env.PYTHONIOENCODING = "utf-8";
+  return env;
+}
+
 function runProcess(
   command: string,
   args: string[],
@@ -28,6 +55,7 @@ function runProcess(
   return new Promise((resolve) => {
     const child = spawn(command, args, {
       cwd,
+      env: sandboxEnv(cwd),
       timeout: timeoutMs,
       windowsHide: true,
     });
@@ -167,7 +195,8 @@ async function runCpp(fullCode: string): Promise<SandboxResult> {
  * timeout that force-kills the process. This is best-effort process
  * isolation (timeout + a scratch dir cleaned up afterward), not a true
  * container sandbox -- there's no Docker/gVisor-style boundary here, so it
- * does not fully block file or network access. Acceptable for a
+ * does not fully block file or network access. The backend's environment
+ * (secrets) is not passed through; see sandboxEnv. Acceptable for a
  * single-tenant dev tool; would need real containerization before ever
  * running submissions from untrusted strangers at scale.
  */

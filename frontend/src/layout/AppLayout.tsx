@@ -205,10 +205,36 @@ function UserMenu({
   );
 }
 
+/** Shown instead of the app to faculty and students whose college's plan
+ * has ended. The API refuses everything for them anyway. */
+function PlanEndedNotice({ message, onSignOut }: { message: string; onSignOut: () => void }) {
+  return (
+    <div className="pt-16 pb-10 max-w-[560px] mx-auto">
+      <div className="card !p-7 sm:!p-9 shadow-lg" role="alert">
+        <p className="eyebrow">Access paused</p>
+        <h1 className="text-[28px] leading-tight mb-3">Your organisation's plan has ended</h1>
+        <p className="text-text-2 text-sm leading-relaxed mb-6">{message}</p>
+        <button type="button" className="btn btn-primary" onClick={onSignOut}>
+          Sign out
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function AppLayout() {
-  const { user, loading } = useAuth();
+  const { user, loading, planBlock, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const orgEnded = !!user && planBlock?.code === "ORG_PLAN_EXPIRED";
+
+  // A college admin whose trial ended can only buy a plan: every page sends
+  // them to the plan page until they do.
+  useEffect(() => {
+    if (user && planBlock?.code === "PLAN_REQUIRED" && location.pathname !== "/college/subscribe") {
+      navigate("/college/subscribe", { replace: true });
+    }
+  }, [user, planBlock, location.pathname, navigate]);
 
   useEffect(() => {
     // /faculty and everything under /college have their own login/register
@@ -221,7 +247,7 @@ export default function AppLayout() {
     }
   }, [loading, user, location.pathname, navigate]);
 
-  const items = user ? NAV_BY_ROLE[user.role] : [];
+  const items = user && !planBlock ? NAV_BY_ROLE[user.role] : [];
   const [tourReplay, setTourReplay] = useState(0);
 
   // Taking a test or interview is distraction-free (and the test page pins a
@@ -280,9 +306,16 @@ export default function AppLayout() {
           )}
         </div>
       </header>
-      {user && <ProductTour key={user.id} user={user} replay={tourReplay} />}
+      {user && !planBlock && <ProductTour key={user.id} user={user} replay={tourReplay} />}
       <div className="flex-1 w-full max-w-[min(1320px,94vw)] mx-auto px-4 sm:px-8 pb-20">
-        <Outlet />
+        {orgEnded ? (
+          <PlanEndedNotice
+            message={planBlock!.error}
+            onSignOut={() => void logout().then(() => navigate("/", { replace: true }))}
+          />
+        ) : (
+          <Outlet />
+        )}
       </div>
       {!hideFooter && <SiteFooter compact={loading || !!user} />}
     </div>

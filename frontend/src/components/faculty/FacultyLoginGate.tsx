@@ -98,7 +98,7 @@ export default function FacultyLoginGate() {
             name: name.trim(),
             email: email.trim(),
             password,
-            // Faculty added by their college don't need one; the server decides.
+            // Their own faculty code if their college added them, otherwise the invite code.
             code: inviteCode.trim() || undefined,
           })
         : await api.post<{ user: AuthUser }>("/api/auth/faculty/login", {
@@ -244,13 +244,12 @@ export default function FacultyLoginGate() {
               </Field>
               {registering && (
                 <Field
-                  label="Invite code"
+                  label="Faculty or invite code"
                   htmlFor="fac-code"
-                  optional
                   hint={
                     <p className="text-text-2 text-[13px] leading-relaxed">
-                      Only needed if your college didn't add you. Ask your Core5
-                      admin for it.
+                      Added by your college? Enter the faculty code (FAC-…) your
+                      TPO gave you. Otherwise, ask your Core5 admin for an invite code.
                     </p>
                   }
                 >
@@ -258,7 +257,7 @@ export default function FacultyLoginGate() {
                     id="fac-code"
                     value={inviteCode}
                     onChange={(e) => setInviteCode(e.target.value)}
-                    placeholder="Invite code"
+                    placeholder="FAC-XXXXXX or invite code"
                     autoComplete="off"
                     className={`${inputClass} font-mono`}
                   />
@@ -293,8 +292,8 @@ export default function FacultyLoginGate() {
           <div className="mt-4 rounded-2xl border border-lime-ink/30 bg-lime-ink/10 px-5 py-4">
             <p className="text-sm font-semibold">Added by your college's TPO?</p>
             <p className="text-text-2 text-[13px] leading-relaxed mt-1">
-              Use the email they registered you with — no invite code needed,
-              just set a password.
+              Use the email they registered you with and the faculty code
+              they shared with you, then set a password.
             </p>
             {!registering && (
               <button

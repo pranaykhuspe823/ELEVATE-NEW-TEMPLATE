@@ -178,11 +178,11 @@ function Certificates() {
       {data && data.length === 0 && <p className="muted">No certificates issued yet. They are created when a learner passes the assessment, or when you issue one from Enrolments.</p>}
       {data && data.length > 0 && (
         <div className="tablewrap"><table className="table">
-          <thead><tr><th>ID</th><th>Holder</th><th>Certificate</th><th>Issued</th><th>Score</th><th>Credly</th><th></th></tr></thead>
+          <thead><tr><th>ID</th><th>Holder</th><th>School</th><th>Certificate</th><th>Issued</th><th>Score</th><th>Credly</th><th></th></tr></thead>
           <tbody>{data.map((c) => (
             <tr key={c.id}>
               <td><a href={`/verify/${c.code}`} target="_blank" rel="noreferrer">{c.code}</a></td>
-              <td><b>{c.holder_name}</b><br />{c.email}</td><td>{c.cert_title}</td>
+              <td><b>{c.holder_name}</b><br />{c.email}</td><td>{c.college_name || '—'}</td><td>{c.cert_title}</td>
               <td>{fmtDate(c.issued_at.replace(' ', 'T') + 'Z')}</td><td>{c.score != null ? `${c.score}%` : '—'}</td>
               <td>{{"sent":"Sent to Credly","failed":"Failed","skipped":"Not sent","none":"Not sent"}[c.credly_status] || 'Not sent'}{c.credly_error && <><br /><small className="muted">{c.credly_error}</small></>}
                 {c.status === 'valid' && c.credly_status !== 'sent' && <><br /><button className="link" onClick={() => sendCredly(c.id)}>Send to Credly</button></>}</td>

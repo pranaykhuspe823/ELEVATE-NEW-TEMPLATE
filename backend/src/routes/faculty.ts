@@ -1,6 +1,6 @@
 import { Router } from "express";
-import fetch from "node-fetch";
 import { prisma } from "../lib/prisma";
+import { certificatesForTeacher, fetchCertificatePdf } from "../lib/core5";
 import { requireAuth, requireCollegePlan, requireFaculty } from "../middleware/auth";
 import { findFacultyStudent } from "../lib/ownership";
 import { buildResources } from "../services/coursePlanGeneration";
@@ -138,41 +138,40 @@ facultyRouter.get("/me", async (req, res) => {
   res.json({ facultyCode: me?.facultyCode ?? null });
 });
 
-/** Certifications this faculty member has earned on Core5 Campus (a
- * separate product with its own accounts), looked up server-to-server by
- * email. Fails soft to an empty list -- Core5 Campus being unconfigured or
- * unreachable shouldn't break the faculty dashboard. */
+/** Certifications this faculty member has earned on Core5 Campus. It shares
+ * this database; certificates are tied to this exact account (they sign in
+ * there with their Elevate login), never matched by email. */
 facultyRouter.get("/certifications", async (req, res) => {
-  const baseUrl = process.env.CORE5CAMPUS_API_URL;
-  const serviceKey = process.env.CORE5CAMPUS_SERVICE_KEY;
-  if (!baseUrl || !serviceKey) {
-    res.json({ certificates: [], configured: false });
-    return;
-  }
-
-  const me = await prisma.user.findUnique({
-    where: { id: req.user!.id },
-    select: { email: true },
-  });
-  if (!me) {
-    res.json({ certificates: [], configured: true });
-    return;
-  }
-
   try {
-    const response = await fetch(
-      `${baseUrl}/api/service/certificates?email=${encodeURIComponent(me.email)}`,
-      { headers: { "X-Service-Key": serviceKey } }
-    );
-    if (!response.ok) {
-      res.json({ certificates: [], configured: true });
-      return;
-    }
-    const data = (await response.json()) as { certificates?: unknown[] };
-    res.json({ certificates: data.certificates ?? [], configured: true });
-  } catch {
+    res.json({ certificates: await certificatesForTeacher(req.user!.id), configured: true });
+  } catch (err) {
+    console.error("[core5] certifications", err);
     res.json({ certificates: [], configured: true });
   }
+});
+
+/** Download one of my certificates as a PDF. It must be one of mine (checked
+ * here and again by Core5 Campus); the code alone isn't enough. */
+facultyRouter.get("/certifications/:code/pdf", async (req, res) => {
+  const code = String(req.params.code).toUpperCase();
+  const mine = await certificatesForTeacher(req.user!.id);
+  if (!mine.some((c) => c.code === code)) {
+    res.status(404).json({ error: "Certificate not found." });
+    return;
+  }
+  let pdf: Buffer | null = null;
+  try {
+    pdf = await fetchCertificatePdf(code, req.user!.id);
+  } catch (err) {
+    console.error("[core5] certificate pdf", err);
+  }
+  if (!pdf) {
+    res.status(502).json({ error: "Couldn't fetch the certificate right now. Try again in a moment." });
+    return;
+  }
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="${code}.pdf"`);
+  res.send(pdf);
 });
 
 /** One student's full picture: resume/ATS/field, weak topics from their

@@ -9,6 +9,15 @@ if (!secret) {
   console.warn('[auth] JWT_SECRET not set. Using a temporary secret; sign-ins reset on restart.');
 }
 
+/** A Core5Campus user plus their school, read live from Elevate: a teacher
+ * linked to an Elevate FACULTY / COLLEGE_ADMIN account belongs to that
+ * account's college; everyone else has college_id NULL (no school). */
+export const USER_WITH_SCHOOL = `SELECT u.id, u.name, u.email, u.phone, u.institution, u.role, u.elevate_user_id,
+    ev."collegeId" AS college_id, col.name AS college_name
+  FROM users u
+  LEFT JOIN public.users ev ON ev.id = u.elevate_user_id AND ev.role IN ('FACULTY','COLLEGE_ADMIN')
+  LEFT JOIN public.colleges col ON col.id = ev."collegeId"`;
+
 export const signToken = (user) => jwt.sign({ sub: user.id, role: user.role }, secret, { expiresIn: '7d' });
 
 export async function requireAuth(req, res, next) {
@@ -21,7 +30,7 @@ export async function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Your session expired. Sign in again.' });
   }
   try {
-    const user = await db.get('SELECT id, name, email, phone, institution, role FROM users WHERE id=?', payload.sub);
+    const user = await db.get(USER_WITH_SCHOOL + ' WHERE u.id=?', payload.sub);
     if (!user) return res.status(401).json({ error: 'Account not found. Sign in again.' });
     req.user = user;
   } catch (err) {

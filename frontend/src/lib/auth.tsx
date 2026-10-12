@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api } from "./api";
+import { api, PLAN_BLOCK_EVENT, type PlanBlock } from "./api";
 
 export interface AuthUser {
   id: string;
@@ -24,6 +24,9 @@ interface AuthContextValue {
   loading: boolean;
   setUser: (user: AuthUser) => void;
   logout: () => Promise<void>;
+  /** Set when the user's college plan has ended (see PlanBlock). */
+  planBlock: PlanBlock | null;
+  setPlanBlock: (block: PlanBlock | null) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -31,13 +34,23 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [planBlock, setPlanBlock] = useState<PlanBlock | null>(null);
+
+  useEffect(() => {
+    const onBlock = (e: Event) => setPlanBlock((e as CustomEvent<PlanBlock>).detail);
+    window.addEventListener(PLAN_BLOCK_EVENT, onBlock);
+    return () => window.removeEventListener(PLAN_BLOCK_EVENT, onBlock);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     api
-      .get<{ user: AuthUser }>("/api/auth/me")
+      .get<{ user: AuthUser; planBlock?: PlanBlock | null }>("/api/auth/me")
       .then(({ data }) => {
-        if (!cancelled) setUser(data.user);
+        if (!cancelled) {
+          setUser(data.user);
+          setPlanBlock(data.planBlock ?? null);
+        }
       })
       .catch(() => {
         if (!cancelled) setUser(null);
@@ -53,10 +66,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     await api.post("/api/auth/logout").catch(() => {});
     setUser(null);
+    setPlanBlock(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, setUser, logout }}>
+    <AuthContext.Provider value={{ user, loading, setUser, logout, planBlock, setPlanBlock }}>
       {children}
     </AuthContext.Provider>
   );

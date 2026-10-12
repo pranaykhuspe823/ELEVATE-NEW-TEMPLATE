@@ -31,6 +31,8 @@ interface Billing {
 interface RegisterResponse {
   college: { id: string; name: string; domain: string | null };
   message: string;
+  emailSent?: boolean;
+  /** Local dev only, when the server has no email provider. */
   devActivationLink?: string;
 }
 
@@ -127,15 +129,9 @@ export default function CollegeRegisterPage() {
   }, []);
 
   const trialText = billing ? `${billing.trialDays}-day free trial` : "free trial";
-  const termText =
-    billing && billing.termMonths % 12 === 0
-      ? `${billing.termMonths / 12}-year`
-      : billing
-      ? `${billing.termMonths}-month`
-      : "1-year";
   const steps = [
     { title: "Register", body: "Create your placement-cell account. It's free." },
-    { title: "Start your trial", body: `Confirm your email, then begin a ${trialText}.` },
+    { title: "Free trial starts", body: `Your ${trialText} starts the moment you register.` },
     { title: "Add faculty", body: "Students link themselves with a code." },
   ];
 
@@ -183,6 +179,7 @@ export default function CollegeRegisterPage() {
             {result.message} We've registered{" "}
             <strong className="text-text">{result.college.name}</strong> — click the
             link to confirm your email and start your {trialText}.
+            {result.emailSent && " Not in your inbox? Check spam, or sign in to resend it."}
           </p>
 
           <ol className="mt-6 flex flex-col gap-3">
@@ -209,11 +206,11 @@ export default function CollegeRegisterPage() {
           {result.devActivationLink && (
             <div className="mt-7 rounded-2xl border border-lime-ink/30 bg-lime-ink/10 p-4">
               <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-lime-ink mb-1.5">
-                Dev mode · no email provider connected yet
+                Local dev · email isn't set up on this server
               </p>
               <p className="text-text-2 text-xs leading-relaxed mb-3">
-                In production this link would be emailed to you. For now, here it is
-                directly:
+                Set SMTP_* in backend/.env to email this link instead. Until then,
+                here it is:
               </p>
               <a
                 href={result.devActivationLink}
@@ -284,8 +281,8 @@ export default function CollegeRegisterPage() {
         <div className="card !p-6 sm:!p-8">
           <h2 className="text-[22px] leading-tight mb-1">Register your college</h2>
           <p className="text-text-2 text-sm mb-6">
-            Free to set up. You'll activate via email, then start a {trialText} —
-            no payment needed to begin.
+            Free to set up. Your {trialText} starts as soon as you register — no
+            payment needed until it ends.
           </p>
 
           <form
@@ -458,12 +455,9 @@ export default function CollegeRegisterPage() {
                     })}
                   </div>
                   <p className="text-text-2 text-[13px] mt-2.5">
-                    Just a preference. Every plan is a {termText} term and starts
-                    with a {trialText}
-                    {billing
-                      ? `; after it you have ${billing.graceDays} days to pay`
-                      : ""}
-                    . You'll confirm your plan after activating.
+                    Your trial runs on this plan; you can switch during the trial.
+                    Pay monthly or yearly. When the {trialText} ends, access stops
+                    until you buy a plan.
                   </p>
                 </div>
               </>

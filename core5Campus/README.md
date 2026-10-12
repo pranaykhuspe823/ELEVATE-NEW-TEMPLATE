@@ -5,11 +5,20 @@ Free, self-paced online courses with narrated lessons and a certificate on compl
 
 ## Run it locally
 
-Needs Node.js 18 or newer and PostgreSQL 14 or newer, with an empty database (e.g. `CREATE DATABASE core5campus;`).
+Needs Node.js 18 or newer and the **Elevate database** (Core5Campus shares it). Run Elevate's migrations first (`cd ../backend && npx prisma migrate deploy`), then point `DATABASE_URL` in `backend/.env` at the same database. Core5Campus keeps its own tables in a separate schema (`DB_SCHEMA`, default `core5`), so nothing collides with Elevate's tables.
+
+### Schools and certificates
+
+Teachers at a school on Elevate (FACULTY or TPO accounts) sign in to Core5Campus with their **Elevate email and password**. Nobody else can register with those emails. Each certificate is stamped with the teacher's school at the moment it is issued:
+
+- the teacher sees their own certificates (here and on their Elevate faculty dashboard)
+- that school's TPO sees them on the Elevate college dashboard, and no other school ever does
+- teachers with no school are independent: only they (and the Core5Campus admin) see their records
+- if a teacher moves school, earlier certificates stay with the school they were earned at
 
 ```bash
 npm run setup                      # installs backend + frontend
-cp backend/.env.example backend/.env   # set DATABASE_URL to that database
+cp backend/.env.example backend/.env   # set DATABASE_URL to the Elevate database
 
 npm run dev:api                    # terminal 1  ->  http://localhost:4100
 npm run dev:web                    # terminal 2  ->  http://localhost:3006

@@ -70,7 +70,7 @@ function RosterRow({
             <p className="text-text-2 text-sm truncate">{f.email}</p>
             {!f.setupComplete && (
               <p className="text-amber text-xs mt-0.5">
-                Hasn't set a password yet
+                Hasn't set a password yet — share their faculty code with them
               </p>
             )}
           </div>

@@ -17,8 +17,13 @@ export const verifyUrl = (code) => `${publicUrl()}/verify/${code}`;
 export async function issueCertificate({ enrollmentId, score = null }) {
   const cert = await db.tx(async (tx) => {
     // Lock the enrolment so two simultaneous passes can't both issue a certificate
-    const row = await tx.get(`SELECT e.id, e.user_id, e.course_id, u.name, c.title, c.cert_title, c.cert_prefix, c.cpd_hours
-      FROM enrollments e JOIN users u ON u.id=e.user_id JOIN courses c ON c.id=e.course_id WHERE e.id=? FOR UPDATE OF e`, enrollmentId);
+    // college_id: the teacher's school in Elevate right now. Stamped on the
+    // certificate so it stays that school's record even if they move later.
+    const row = await tx.get(`SELECT e.id, e.user_id, e.course_id, u.name, c.title, c.cert_title, c.cert_prefix, c.cpd_hours,
+        ev."collegeId" AS college_id
+      FROM enrollments e JOIN users u ON u.id=e.user_id JOIN courses c ON c.id=e.course_id
+      LEFT JOIN public.users ev ON ev.id=u.elevate_user_id AND ev.role IN ('FACULTY','COLLEGE_ADMIN')
+      WHERE e.id=? FOR UPDATE OF e`, enrollmentId);
     if (!row) throw new Error('Enrolment not found');
     const existing = await tx.get("SELECT * FROM certificates WHERE enrollment_id=? AND status='valid'", enrollmentId);
     if (existing) return { ...existing, existed: true };
@@ -26,8 +31,8 @@ export async function issueCertificate({ enrollmentId, score = null }) {
     let code;
     do { code = `C5C-${row.cert_prefix || 'CRT'}-${yy}-${randomCode(6)}`; }
     while (await tx.get('SELECT 1 FROM certificates WHERE code=?', code));
-    const { rows: [created] } = await tx.run(`INSERT INTO certificates (code, user_id, course_id, enrollment_id, holder_name, course_title, cert_title, cpd_hours, score)
-      VALUES (?,?,?,?,?,?,?,?,?) RETURNING *`, code, row.user_id, row.course_id, row.id, row.name, row.title, row.cert_title || row.title, row.cpd_hours, score);
+    const { rows: [created] } = await tx.run(`INSERT INTO certificates (code, user_id, course_id, enrollment_id, holder_name, course_title, cert_title, cpd_hours, score, college_id)
+      VALUES (?,?,?,?,?,?,?,?,?,?) RETURNING *`, code, row.user_id, row.course_id, row.id, row.name, row.title, row.cert_title || row.title, row.cpd_hours, score, row.college_id);
     await tx.run("UPDATE enrollments SET status='completed' WHERE id=?", row.id);
     return created;
   });

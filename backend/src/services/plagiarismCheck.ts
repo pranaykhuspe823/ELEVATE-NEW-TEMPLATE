@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { mlAuthHeaders } from "../lib/mlService";
 import { prisma } from "../lib/prisma";
 import { generateStructured } from "../lib/llm";
 import type { ParsedResume } from "../schemas/resume";
@@ -128,7 +129,7 @@ async function semanticSimilarity(
   try {
     const res = await fetch(`${ML_SERVICE_URL}/semantic-similarity`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...mlAuthHeaders() },
       body: JSON.stringify({
         units,
         candidates,

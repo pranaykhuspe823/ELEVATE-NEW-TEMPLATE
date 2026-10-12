@@ -70,6 +70,11 @@ model College {
   id        String   @id @default(uuid())
   name      String
   domain    String? // informational only, not used for auth/matching
+  // Duplicate guards (see lib/collegeKeys.ts): the name with case, spaces and
+  // punctuation stripped, and the bare domain. Unique, so the same college
+  // can't be registered twice -- only deleting the existing row frees them.
+  nameKey   String  @unique
+  domainKey String? @unique
   createdAt DateTime @default(now())
 
   // Captured at signup, purely to pre-highlight a plan on the subscribe
@@ -84,6 +89,7 @@ model College {
   members      User[]        @relation("CollegeMembers")
   subscription Subscription?
   drives       CampusDrive[]
+  payments     Payment[]
 
   @@map("colleges")
 }
@@ -148,13 +154,52 @@ model Subscription {
   activatedAt  DateTime? // when the subscription started (trial start, or first payment)
   createdAt    DateTime  @default(now())
 
-  // Free trial end. Null on subscriptions that predate trials.
+  // Free trial end: exactly BILLING.trialDays after the college registered.
+  // Set once by the server; a database trigger rejects any later change to
+  // it or to activatedAt (see the trial_dates_locked migration).
   trialEndsAt DateTime?
+  // Reminder emails: the smallest "days left" already emailed (3, 2, 1), and
+  // when the "trial has ended" email went out. Keeps each send to once.
+  trialReminderDaysLeft Int?
+  trialEndedEmailAt     DateTime?
   // Set when the college pays; the 1-year term runs paidAt -> termEndsAt.
   paidAt      DateTime?
   termEndsAt  DateTime?
+  // monthly | yearly -- the cycle of the last payment (default for renewing)
+  billingCycle String @default("yearly")
+
+  payments Payment[]
 
   @@map("subscriptions")
+}
+
+/// One Razorpay order for a plan term. Created before checkout opens; marked
+/// paid only after Razorpay's signature checks out (checkout callback or
+/// webhook, whichever arrives first -- applying it is idempotent).
+model Payment {
+  id             String       @id @default(uuid())
+  collegeId      String
+  college        College      @relation(fields: [collegeId], references: [id])
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+
+  planKey      String
+  facultySeats Int
+  // monthly (1-month term) | yearly (12-month term)
+  billingCycle String @default("yearly")
+  amountPaise  Int
+  currency     String @default("INR")
+
+  razorpayOrderId   String  @unique
+  razorpayPaymentId String? @unique
+  // created | paid | failed
+  status String @default("created")
+
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
+
+  @@index([collegeId])
+  @@map("payments")
 }
 
 model Resume {

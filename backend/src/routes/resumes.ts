@@ -19,6 +19,20 @@ const ALLOWED_MIME = new Set([
 ]);
 const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 
+/** The file's real type from its own bytes -- the browser-supplied MIME type
+ * and filename are attacker-controlled. DOCX is a ZIP container. */
+function sniffResume(buf: Buffer): ".pdf" | ".docx" | null {
+  if (buf.length > 5 && buf.subarray(0, 5).toString("ascii") === "%PDF-") return ".pdf";
+  if (
+    buf.length > 4 &&
+    buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04 &&
+    buf.includes("word/")
+  ) {
+    return ".docx";
+  }
+  return null;
+}
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_SIZE_BYTES },
@@ -52,9 +66,12 @@ resumesRouter.post("/upload", requireFacultyLink, (req, res) => {
     }
 
     try {
-      const ext =
-        path.extname(req.file.originalname) ||
-        (req.file.mimetype === "application/pdf" ? ".pdf" : ".docx");
+      const ext = sniffResume(req.file.buffer);
+      const claimedExt = path.extname(req.file.originalname).toLowerCase();
+      if (!ext || (claimedExt && claimedExt !== ext)) {
+        res.status(400).json({ error: "Only PDF or DOCX files are supported." });
+        return;
+      }
       const storedFilename = `${crypto.randomUUID()}${ext}`;
       const rawFilePath = await storage.save(req.file.buffer, storedFilename);
 

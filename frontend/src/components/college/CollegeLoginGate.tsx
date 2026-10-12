@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import axios from "axios";
-import { api } from "../../lib/api";
+import { api, type PlanBlock } from "../../lib/api";
 import { useAuth, type AuthUser } from "../../lib/auth";
 import { inputClass } from "../faculty/types";
 import {
@@ -30,7 +30,7 @@ const POINTS: { icon: ReactNode; text: string }[] = [
  * have their own email/password credentials, set at /college/register and
  * confirmed via the emailed activation link. */
 export default function CollegeLoginGate() {
-  const { setUser } = useAuth();
+  const { setUser, setPlanBlock } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -46,11 +46,13 @@ export default function CollegeLoginGate() {
     setNeedsActivation(false);
     setResendMessage(null);
     try {
-      const { data } = await api.post<{ user: AuthUser }>("/api/auth/college/login", {
-        email: email.trim(),
-        password,
-      });
+      const { data } = await api.post<{ user: AuthUser; planBlock?: PlanBlock | null }>(
+        "/api/auth/college/login",
+        { email: email.trim(), password }
+      );
       setUser(data.user);
+      // Trial over and unpaid: the layout takes them straight to buying a plan.
+      setPlanBlock(data.planBlock ?? null);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 403) {
         setNeedsActivation(true);

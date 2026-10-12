@@ -3,9 +3,11 @@ import { BILLING, getPlan } from "../data/plans";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** trialing: free trial running. grace: the trial (or a paid term) has ended
- * and the college has a few days to pay. active: paid and within its term.
- * expired: grace ran out unpaid -- locked until they pay. */
+/** trialing: free trial running. active: paid and within its term.
+ * grace: a PAID term has ended and the college has a few days to renew.
+ * expired: the trial ended unpaid (no grace -- locked the moment it ends),
+ * or a paid term's grace ran out. Locked until they pay.
+ * All computed from server-side dates; the browser's clock plays no part. */
 export type Phase = "trialing" | "grace" | "active" | "expired" | "cancelled";
 
 export interface SubscriptionState {
@@ -45,11 +47,17 @@ export function computeState(sub: Subscription, now: Date = new Date()): Subscri
     return { ...base, phase: "cancelled", daysLeft: 0, graceEndsAt: null, canAddFaculty: false, needsPayment: true };
   }
   if (!clockEnd) {
-    // No dates at all (shouldn't happen): don't lock anyone out over bad data.
-    return { ...base, phase: paid ? "active" : "trialing", daysLeft: 0, graceEndsAt: null, canAddFaculty: true, needsPayment: !paid };
+    // No trial end and not paid (shouldn't happen -- registration always sets
+    // one): treat as ended rather than as an endless trial.
+    return paid
+      ? { ...base, phase: "active", daysLeft: 0, graceEndsAt: null, canAddFaculty: true, needsPayment: false }
+      : { ...base, phase: "expired", daysLeft: 0, graceEndsAt: null, canAddFaculty: false, needsPayment: true };
   }
 
-  const graceEndsAt = new Date(clockEnd.getTime() + BILLING.graceDays * DAY_MS);
+  // The free trial has no grace period; only renewing a paid year does.
+  const graceEndsAt = paid
+    ? new Date(clockEnd.getTime() + BILLING.graceDays * DAY_MS)
+    : clockEnd;
 
   if (now < clockEnd) {
     return {
@@ -82,6 +90,8 @@ export function serializeSubscription(sub: Subscription, now: Date = new Date())
     status: sub.status,
     facultySeats: sub.facultySeats,
     activatedAt: sub.activatedAt,
+    billingCycle: sub.billingCycle,
+    monthlyPricePaise: getPlan(sub.planKey)?.priceInPaiseMonthly ?? null,
     yearlyPricePaise: getPlan(sub.planKey)?.priceInPaiseYearly ?? null,
     ...state,
   };

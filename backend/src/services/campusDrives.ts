@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { mlAuthHeaders } from "../lib/mlService";
 import { z } from "zod";
 import type { CampusDrive } from "@prisma/client";
 import { prisma } from "../lib/prisma";
@@ -116,7 +117,7 @@ export async function matchSkills(
   try {
     const res = await fetch(`${ML_SERVICE_URL}/match-skills`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...mlAuthHeaders() },
       body: JSON.stringify({ skills, resumes }),
       timeout: 60000,
     });

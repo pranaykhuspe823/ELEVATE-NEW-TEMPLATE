@@ -5,7 +5,15 @@ import pg from 'pg';
 pg.types.setTypeParser(20, (v) => parseInt(v, 10));
 
 if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL must be set (a PostgreSQL connection string).');
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+
+// Core5Campus lives in Elevate's database, in its own schema so its tables
+// (users, courses, ...) never collide with Elevate's. Elevate's tables stay in
+// "public" and are referenced explicitly as public.users / public.colleges.
+export const SCHEMA = process.env.DB_SCHEMA || 'core5';
+if (!/^[a-z_][a-z0-9_]*$/.test(SCHEMA)) throw new Error('DB_SCHEMA must be a plain lowercase identifier.');
+
+// Every connection resolves unqualified table names to our schema.
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, options: `-c search_path=${SCHEMA}` });
 
 // Queries are written with SQLite-style "?" placeholders; Postgres wants $1, $2, ...
 // Placeholders inside quoted SQL strings are left alone.
@@ -53,6 +61,8 @@ export const db = {
 // Timestamps stay TEXT in 'YYYY-MM-DD HH:MM:SS' UTC, the format the
 // certificate and Credly code parse.
 const NOW = "to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS')";
+
+await db.exec(`CREATE SCHEMA IF NOT EXISTS ${SCHEMA}`);
 
 await db.exec(`
 CREATE TABLE IF NOT EXISTS users (
@@ -177,4 +187,15 @@ CREATE TABLE IF NOT EXISTS lesson_media (
 );
 CREATE INDEX IF NOT EXISTS idx_enroll_user ON enrollments(user_id);
 CREATE INDEX IF NOT EXISTS idx_enq_status ON enquiries(status);
+`);
+
+// Link to Elevate. A teacher who signs in with their Elevate faculty account
+// gets elevate_user_id; their school is read live from public.users."collegeId".
+// Each certificate is stamped with the school the teacher belonged to when it
+// was issued, so it stays that school's record (NULL = no school).
+await db.exec(`
+ALTER TABLE users ADD COLUMN IF NOT EXISTS elevate_user_id TEXT UNIQUE REFERENCES public.users(id) ON DELETE SET NULL;
+ALTER TABLE certificates ADD COLUMN IF NOT EXISTS college_id TEXT REFERENCES public.colleges(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_cert_college ON certificates(college_id);
+CREATE INDEX IF NOT EXISTS idx_cert_user ON certificates(user_id);
 `);

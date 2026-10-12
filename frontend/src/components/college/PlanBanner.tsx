@@ -1,5 +1,13 @@
 import { Link } from "react-router-dom";
 import { formatDate } from "../faculty/types";
+
+const formatDateTime = (iso: string) =>
+  new Date(iso).toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 import { ClockIcon, ShieldIcon } from "../faculty/icons";
 import {
   formatRupees,
@@ -31,8 +39,11 @@ const ICON_TONES = {
 
 function copyFor(sub: SubscriptionInfo, billing: Billing): Copy | null {
   const price =
-    sub.yearlyPricePaise !== null ? `${formatRupees(sub.yearlyPricePaise)} / year` : "the paid plan";
+    sub.monthlyPricePaise !== null && sub.yearlyPricePaise !== null
+      ? `${formatRupees(sub.monthlyPricePaise)}/month or ${formatRupees(sub.yearlyPricePaise)}/year`
+      : "the paid plan";
   const term = termLabel(billing.termMonths);
+  const paidTerm = sub.billingCycle === "monthly" ? "monthly" : term;
   const plan = planLabel(sub.planKey);
 
   switch (sub.phase) {
@@ -40,37 +51,37 @@ function copyFor(sub: SubscriptionInfo, billing: Billing): Copy | null {
       return {
         tone: "gold",
         title: `Free trial · ${pluralDays(sub.daysLeft)} left`,
-        body: `You're trying the ${plan} plan free. Activate the ${term} plan (${price}) before the trial ends to keep going — you get ${pluralDays(
-          billing.graceDays
-        )} after it ends to pay.`,
-        cta: "Activate paid plan",
+        body: `Your free trial ends on ${
+          sub.trialEndsAt ? formatDateTime(sub.trialEndsAt) : "soon"
+        }. Buy the ${plan} plan (${price}) before then — when it ends, you, your faculty and your students lose access until you do.`,
+        cta: "Buy a plan",
       };
     case "grace":
       return {
         tone: "coral",
         title: `Payment due · ${pluralDays(sub.daysLeft)} left`,
         body: sub.paidAt
-          ? `Your ${term} term has ended. Renew within ${pluralDays(
+          ? `Your ${paidTerm} term has ended. Renew within ${pluralDays(
               sub.daysLeft
             )} or adding faculty pauses and your faculty lose access.`
-          : `Your free trial has ended. Activate the ${term} plan within ${pluralDays(
-              sub.daysLeft
-            )} or adding faculty pauses and your faculty lose access.`,
+          : `Your free trial has ended. Buy a plan to restore access.`,
         cta: sub.paidAt ? "Renew plan" : "Activate paid plan",
       };
     case "expired":
       return {
         tone: "coral",
-        title: "Your plan has expired",
-        body: `Adding faculty is paused and your faculty can't open their dashboards until you activate the ${term} plan (${price}).`,
-        cta: sub.paidAt ? "Renew plan" : "Activate paid plan",
+        title: sub.paidAt ? "Your plan has expired" : "Your free trial has ended",
+        body: `Elevate is locked for your college — faculty and students can't sign in — until you ${
+          sub.paidAt ? `renew your plan (${price})` : "buy a plan"
+        }.`,
+        cta: sub.paidAt ? "Renew plan" : "Buy a plan",
       };
     case "active":
       if (sub.daysLeft > 30) return null;
       return {
         tone: "navy",
         title: `Renews in ${pluralDays(sub.daysLeft)}`,
-        body: `Your ${term} plan runs until ${
+        body: `Your ${paidTerm} plan runs until ${
           sub.termEndsAt ? formatDate(sub.termEndsAt) : "soon"
         }. Renew early any time — the extra year is added to the end of your current term.`,
         cta: "Renew plan",

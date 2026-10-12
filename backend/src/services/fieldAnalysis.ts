@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { mlAuthHeaders } from "../lib/mlService";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { generateStructured } from "../lib/llm";
@@ -27,7 +28,7 @@ interface RankedField {
 async function classifyField(skills: string[]): Promise<RankedField[]> {
   const res = await fetch(`${ML_SERVICE_URL}/classify-field`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...mlAuthHeaders() },
     body: JSON.stringify({ skills }),
   });
   if (!res.ok) {

@@ -23,8 +23,12 @@ export interface SubscriptionInfo {
   daysLeft: number;
   canAddFaculty: boolean;
   needsPayment: boolean;
+  billingCycle: BillingCycle;
+  monthlyPricePaise: number | null;
   yearlyPricePaise: number | null;
 }
+
+export type BillingCycle = "monthly" | "yearly";
 
 export interface Billing {
   trialDays: number;

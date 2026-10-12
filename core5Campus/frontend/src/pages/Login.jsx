@@ -27,6 +27,7 @@ export default function Login() {
     <main className="wrap section narrow">
       <h1>{isNew ? 'Create your account' : 'Sign in'}</h1>
       <p className="lead">{isNew ? 'Use the name you want printed on your certificates.' : 'Open your courses, progress and certificates.'}</p>
+      <p className="muted small">Teaching at a school on Elevate? Sign in with your Elevate faculty email and password. Your certificates are then saved to your school.</p>
       <form className="form" onSubmit={submit} noValidate>
         {isNew && <label>Full name<input value={f.name} onChange={set('name')} autoComplete="name" /></label>}
         <label>Email<input type="email" value={f.email} onChange={set('email')} autoComplete="email" /></label>
