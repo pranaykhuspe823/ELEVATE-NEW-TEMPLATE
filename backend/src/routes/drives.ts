@@ -161,6 +161,92 @@ drivesRouter.post("/extract-skills", requireCollegeAdmin, async (req, res) => {
   }
 });
 
+/** Job match: score every student in the TPO's college against a job's
+ * required skills (no drive is saved) and bucket them strong / medium / low.
+ * Unlike /:id/readiness, the TPO sees individual students here -- the point
+ * is to shortlist them for a placement. */
+drivesRouter.post("/match", requireCollegeAdmin, async (req, res) => {
+  const ctx = await getCtx(req);
+  if (!ctx.collegeId) {
+    res.status(404).json({ error: "No college found for this account." });
+    return;
+  }
+  const blocked = await planBlock(ctx.collegeId, ctx.role, false);
+  if (blocked) return sendBlocked(res, blocked);
+
+  const skills = cleanSkills(
+    Array.isArray((req.body as { skills?: unknown }).skills)
+      ? (req.body as { skills: unknown[] }).skills
+      : []
+  );
+  if (skills.length === 0) {
+    res.status(400).json({ error: "Add at least one required skill to match against." });
+    return;
+  }
+
+  const faculty = await prisma.user.findMany({
+    where: { role: "FACULTY", collegeId: ctx.collegeId },
+    select: { id: true, name: true, email: true },
+  });
+  const facultyName = new Map(faculty.map((f) => [f.id, f.name ?? f.email]));
+  const students = await prisma.user.findMany({
+    where: { role: "STUDENT", facultyId: { in: faculty.map((f) => f.id) } },
+    select: { id: true, name: true, email: true, facultyId: true },
+  });
+
+  const resumes = await latestParsedResumes(students.map((s) => s.id));
+  const withResume = students.filter((s) => resumes.has(s.id));
+  const atsRows = await prisma.atsScore.findMany({
+    where: { resumeId: { in: withResume.map((s) => resumes.get(s.id)!.id) } },
+    orderBy: { createdAt: "desc" },
+    select: { resumeId: true, totalScore: true },
+  });
+  const atsByResume = new Map<string, number>();
+  for (const a of atsRows) if (!atsByResume.has(a.resumeId)) atsByResume.set(a.resumeId, a.totalScore);
+
+  try {
+    const matches = await matchSkills(
+      skills,
+      withResume.map((s) => ({ id: s.id, text: resumeSearchText(resumes.get(s.id)!.parsed) }))
+    );
+    const rows = withResume
+      .map((s) => {
+        const resume = resumes.get(s.id)!;
+        const m = matches.get(s.id) ?? { matched: [], missing: skills };
+        const score = scoreOf(m.matched.length, skills.length);
+        return {
+          id: s.id,
+          name: s.name,
+          email: s.email,
+          faculty: s.facultyId ? facultyName.get(s.facultyId) ?? null : null,
+          resumeId: resume.id,
+          atsScore: atsByResume.get(resume.id) ?? null,
+          score,
+          fit: score >= 70 ? "strong" : score >= 40 ? "medium" : "low",
+          matched: m.matched,
+          missing: m.missing,
+        };
+      })
+      .sort((a, b) => b.score - a.score || (b.atsScore ?? 0) - (a.atsScore ?? 0));
+
+    res.json({
+      skills,
+      totalStudents: students.length,
+      students: rows,
+      withoutResume: students
+        .filter((s) => !resumes.has(s.id))
+        .map((s) => ({
+          id: s.id,
+          name: s.name,
+          email: s.email,
+          faculty: s.facultyId ? facultyName.get(s.facultyId) ?? null : null,
+        })),
+    });
+  } catch (err) {
+    handleServiceError(err, res);
+  }
+});
+
 /** "Draft with AI": a job description and tech stack for a role, so the TPO
  * doesn't start from a blank page. Nothing is saved -- it's a suggestion. */
 drivesRouter.post("/suggest", requireCollegeAdmin, async (req, res) => {

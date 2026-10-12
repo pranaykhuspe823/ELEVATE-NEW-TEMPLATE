@@ -14,6 +14,7 @@ import CollegeRegisterPage from "./pages/CollegeRegisterPage";
 import CollegeActivatePage from "./pages/CollegeActivatePage";
 import CollegeSubscribePage from "./pages/CollegeSubscribePage";
 import CollegeDashboardPage from "./pages/CollegeDashboardPage";
+import JobMatchPage from "./pages/JobMatchPage";
 import ProfilePage from "./pages/ProfilePage";
 import DrivesPage from "./pages/DrivesPage";
 import DriveDetailPage from "./pages/DriveDetailPage";
@@ -38,6 +39,7 @@ function App() {
         <Route path="/college/activate" element={<CollegeActivatePage />} />
         <Route path="/college/subscribe" element={<CollegeSubscribePage />} />
         <Route path="/college" element={<CollegeDashboardPage />} />
+        <Route path="/college/job-match" element={<JobMatchPage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Route>
     </Routes>

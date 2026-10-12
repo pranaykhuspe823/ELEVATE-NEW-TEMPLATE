@@ -211,8 +211,8 @@ function AssignmentRow({
         )}
         <QuizAction assignment={a} onStart={() => onStartQuiz(a)} />
         {others.length > 0 && (
-          <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-            <span className="text-text-3">{primary ? "Also on" : "Find it on"}</span>
+          <span className="inline-flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-semibold text-text-2">{primary ? "Also on" : "Find it on"}</span>
             {others.map((r, i) => (
               <a
                 key={i}
@@ -220,10 +220,10 @@ function AssignmentRow({
                 target="_blank"
                 rel="noopener noreferrer"
                 title={r.title}
-                className="inline-flex items-center gap-1 text-text-2 hover:text-lime hover:underline"
+                className="inline-flex items-center gap-1 rounded-full border-2 border-lime/40 bg-lime/10 px-3 py-1 font-semibold text-lime-ink no-underline transition hover:border-lime hover:bg-lime hover:text-white"
               >
                 {r.title ? `${r.platform}: ${r.title}` : r.platform}
-                <ExternalIcon width={10} height={10} />
+                <ExternalIcon width={11} height={11} />
               </a>
             ))}
           </span>

@@ -16,6 +16,8 @@ import ProductTour from "../components/tour/ProductTour";
 interface NavItem {
   to: string;
   label: string;
+  /** Only active on this exact path, not on paths nested under it. */
+  end?: boolean;
 }
 
 const NAV_BY_ROLE: Record<AuthUser["role"], NavItem[]> = {
@@ -30,7 +32,8 @@ const NAV_BY_ROLE: Record<AuthUser["role"], NavItem[]> = {
     { to: "/drives", label: "Campus drives" },
   ],
   COLLEGE_ADMIN: [
-    { to: "/college", label: "College dashboard" },
+    { to: "/college", label: "College dashboard", end: true },
+    { to: "/college/job-match", label: "Job match" },
     { to: "/drives", label: "Campus drives" },
   ],
 };
@@ -172,6 +175,7 @@ function UserMenu({
               <NavLink
                 key={item.to}
                 to={item.to}
+                end={item.end}
                 role="menuitem"
                 className={({ isActive }) =>
                   `block rounded-xl px-3 py-2.5 text-sm ${
@@ -259,6 +263,7 @@ export default function AppLayout() {
                   <NavLink
                     key={item.to}
                     to={item.to}
+                    end={item.end}
                     className={navLinkClass}
                     data-tour={`nav:${item.to}`}
                   >
