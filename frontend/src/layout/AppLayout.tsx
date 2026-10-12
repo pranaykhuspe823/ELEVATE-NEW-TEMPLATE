@@ -21,6 +21,7 @@ interface NavItem {
 const NAV_BY_ROLE: Record<AuthUser["role"], NavItem[]> = {
   STUDENT: [
     { to: "/upload", label: "Upload resume" },
+    { to: "/resumes", label: "My resumes" },
     { to: "/assignments", label: "My assignments" },
     { to: "/drives", label: "Campus drives" },
   ],

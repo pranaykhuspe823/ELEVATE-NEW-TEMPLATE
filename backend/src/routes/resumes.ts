@@ -9,7 +9,7 @@ import { processResume } from "../services/resumeProcessing";
 import { generateTest } from "../services/testGeneration";
 import { generateFixSuggestions } from "../services/fixSuggestions";
 import { startInterview } from "../services/interviewService";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, requireFacultyLink } from "../middleware/auth";
 import { findOwnedResume } from "../lib/ownership";
 import { PLAGIARISM_SIMILARITY_THRESHOLD } from "../services/plagiarismCheck";
 
@@ -34,7 +34,7 @@ const upload = multer({
 export const resumesRouter = Router();
 resumesRouter.use(requireAuth);
 
-resumesRouter.post("/upload", (req, res) => {
+resumesRouter.post("/upload", requireFacultyLink, (req, res) => {
   upload.single("resume")(req, res, async (err) => {
     if (err) {
       const message =
@@ -78,6 +78,52 @@ resumesRouter.post("/upload", (req, res) => {
   });
 });
 
+/** The signed-in user's resume history, newest first, with the latest ATS
+ * score and detected field of each. */
+resumesRouter.get("/", async (req, res) => {
+  const resumes = await prisma.resume.findMany({
+    where: { userId: req.user!.id },
+    orderBy: { uploadedAt: "desc" },
+    select: {
+      id: true,
+      filename: true,
+      uploadedAt: true,
+      status: true,
+      processingError: true,
+      atsScores: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: {
+          totalScore: true,
+          formattingScore: true,
+          keywordScore: true,
+          impactScore: true,
+          structureScore: true,
+        },
+      },
+      analyses: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { detectedField: true, seniority: true },
+      },
+      _count: { select: { tests: true, interviews: true } },
+    },
+  });
+  res.json({
+    resumes: resumes.map((r) => ({
+      id: r.id,
+      filename: r.filename,
+      uploadedAt: r.uploadedAt,
+      status: r.status,
+      processingError: r.processingError,
+      ats: r.atsScores[0] ?? null,
+      field: r.analyses[0] ?? null,
+      testCount: r._count.tests,
+      interviewCount: r._count.interviews,
+    })),
+  });
+});
+
 resumesRouter.get("/:id", async (req, res) => {
   const resume = await findOwnedResume(req.user!.id, req.params.id);
   if (!resume) {
@@ -96,7 +142,7 @@ resumesRouter.get("/:id", async (req, res) => {
 
 /** Re-run the analysis of a resume that failed (e.g. the AI service was busy),
  * on the file that's already stored -- no need to upload it again. */
-resumesRouter.post("/:id/retry", async (req, res) => {
+resumesRouter.post("/:id/retry", requireFacultyLink, async (req, res) => {
   const resume = await findOwnedResume(req.user!.id, req.params.id);
   if (!resume) {
     res.status(404).json({ error: "Resume not found." });

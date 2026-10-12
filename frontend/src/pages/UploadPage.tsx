@@ -2,6 +2,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { uploadResume } from "../lib/api";
+import { useAuth } from "../lib/auth";
 import FacultyLinkCard from "../components/FacultyLinkCard";
 import {
   BookIcon,
@@ -54,6 +55,10 @@ function validateFile(file: File): string | null {
 
 export default function UploadPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  // Students must link a faculty code before uploading (enforced server-side
+  // too, see requireFacultyLink).
+  const isLocked = user?.role === "STUDENT" && !user.facultyId;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
@@ -61,6 +66,7 @@ export default function UploadPage() {
   const [error, setError] = useState<string | null>(null);
 
   async function handleFile(file: File) {
+    if (isLocked) return;
     const validationError = validateFile(file);
     if (validationError) {
       setError(validationError);
@@ -90,7 +96,7 @@ export default function UploadPage() {
   function handleDrop(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setIsDragActive(false);
-    if (isUploading) return;
+    if (isUploading || isLocked) return;
     const file = e.dataTransfer.files?.[0];
     if (file) void handleFile(file);
   }
@@ -132,11 +138,15 @@ export default function UploadPage() {
         </div>
 
         <div className="flex flex-col gap-4 min-w-0">
+          <div data-tour="faculty-link">
+            <FacultyLinkCard />
+          </div>
+
           <div
             data-tour="upload-dropzone"
             onDragOver={(e) => {
               e.preventDefault();
-              if (!isUploading) setIsDragActive(true);
+              if (!isUploading && !isLocked) setIsDragActive(true);
             }}
             onDragLeave={(e) => {
               if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
@@ -145,8 +155,11 @@ export default function UploadPage() {
             }}
             onDrop={handleDrop}
             aria-busy={isUploading}
+            aria-disabled={isLocked}
             className={`rounded-[22px] border-2 border-dashed px-6 py-10 sm:px-10 sm:py-12 text-center transition ${
-              isDragActive
+              isLocked
+                ? "border-border bg-white opacity-60"
+                : isDragActive
                 ? "border-lime bg-lime/5 shadow"
                 : "border-border bg-white hover:border-lime"
             }`}
@@ -169,19 +182,23 @@ export default function UploadPage() {
             </div>
 
             <h2 className="text-[19px] leading-snug mb-1.5 break-words">
-              {isUploading
+              {isLocked
+                ? "Link your faculty code first"
+                : isUploading
                 ? `Uploading${fileName ? ` ${fileName}` : ""}…`
                 : isDragActive
                 ? "Drop it to upload"
                 : "Drop your resume here"}
             </h2>
             <p className="text-text-2 text-[13px] mb-5">
-              {isUploading
+              {isLocked
+                ? "Resume upload unlocks once your account is linked to your faculty."
+                : isUploading
                 ? "This only takes a moment."
                 : "PDF or DOCX, up to 10MB"}
             </p>
 
-            {!isUploading && (
+            {!isUploading && !isLocked && (
               <>
                 <div className="flex items-center gap-3 max-w-[220px] mx-auto mb-5 text-text-3 text-xs">
                   <span className="flex-1 h-px bg-border" />
@@ -225,10 +242,6 @@ export default function UploadPage() {
           <p className="text-text-2 text-[13px] text-center">
             After you upload, the analysis usually takes a minute or two.
           </p>
-
-          <div data-tour="faculty-link">
-            <FacultyLinkCard />
-          </div>
         </div>
       </div>
     </div>

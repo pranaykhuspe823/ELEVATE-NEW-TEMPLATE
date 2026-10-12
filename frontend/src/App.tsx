@@ -9,6 +9,7 @@ import InterviewPage from "./pages/InterviewPage";
 import FacultyDashboardPage from "./pages/FacultyDashboardPage";
 import FacultyStudentPage from "./pages/FacultyStudentPage";
 import MyAssignmentsPage from "./pages/MyAssignmentsPage";
+import MyResumesPage from "./pages/MyResumesPage";
 import CollegeRegisterPage from "./pages/CollegeRegisterPage";
 import CollegeActivatePage from "./pages/CollegeActivatePage";
 import CollegeSubscribePage from "./pages/CollegeSubscribePage";
@@ -23,6 +24,7 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route element={<AppLayout />}>
         <Route path="/upload" element={<UploadPage />} />
+        <Route path="/resumes" element={<MyResumesPage />} />
         <Route path="/resumes/:resumeId" element={<AnalysisPage />} />
         <Route path="/tests/:testId" element={<TestPage />} />
         <Route path="/tests/:testId/results" element={<ResultsPage />} />

@@ -69,6 +69,30 @@ export async function requireCollegePlan(
   next();
 }
 
+/** Mount after requireAuth. Students must link a faculty member (via
+ * /api/auth/join-faculty) before their resume can be uploaded or parsed.
+ * Other roles pass. */
+export async function requireFacultyLink(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  if (req.user?.role === "STUDENT") {
+    const me = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { facultyId: true },
+    });
+    if (!me?.facultyId) {
+      res.status(403).json({
+        error: "Link your faculty code before uploading your resume.",
+        code: "FACULTY_LINK_REQUIRED",
+      });
+      return;
+    }
+  }
+  next();
+}
+
 /** Mount after requireAuth. Rejects anyone whose account isn't COLLEGE_ADMIN. */
 export function requireCollegeAdmin(req: Request, res: Response, next: NextFunction) {
   if (req.user?.role !== "COLLEGE_ADMIN") {

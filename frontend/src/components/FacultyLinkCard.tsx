@@ -4,8 +4,10 @@ import { useAuth, type AuthUser } from "../lib/auth";
 import { errorMessage, inputClass } from "./faculty/types";
 import { CheckIcon, LinkIcon } from "./faculty/icons";
 
-/** Shown to students who haven't linked a faculty member yet. Once linked,
- * their faculty can see their ATS score / weak topics and assign courses. */
+/** Shown to students who haven't linked a faculty member yet. Linking is
+ * required before a resume can be uploaded (the backend enforces it too).
+ * Once linked, their faculty can see their ATS score / weak topics and
+ * assign courses. */
 export default function FacultyLinkCard() {
   const { user, setUser } = useAuth();
   const [code, setCode] = useState("");
@@ -51,16 +53,22 @@ export default function FacultyLinkCard() {
   }
 
   return (
-    <section className="card !p-4 sm:!p-5">
+    <section className="card !p-4 sm:!p-5 !border-lime">
       <div className="flex items-start gap-3 mb-3.5">
         <span className="flex-none w-9 h-9 rounded-xl bg-lime/10 text-lime flex items-center justify-center">
           <LinkIcon width={16} height={16} />
         </span>
         <div className="min-w-0">
-          <h2 className="text-[15px] leading-tight">Have a faculty code?</h2>
+          <h2 className="text-[15px] leading-tight">
+            Enter your faculty code{" "}
+            <span className="text-coral text-[12px] font-semibold align-middle">
+              Required
+            </span>
+          </h2>
           <p className="text-text-2 text-[13px] leading-snug mt-0.5">
-            Link your account so your faculty can see your progress and assign
-            courses tailored to where you're lacking.
+            You need to link your faculty before you can upload your resume.
+            Ask your faculty for their code. They'll see your progress and
+            assign courses tailored to where you're lacking.
           </p>
         </div>
       </div>

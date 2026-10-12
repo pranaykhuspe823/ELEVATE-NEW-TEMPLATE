@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
@@ -18,6 +18,7 @@ import {
   SparkIcon,
 } from "../components/faculty/icons";
 import { formatDate } from "../components/faculty/types";
+import CourseQuizDialog from "../components/courses/CourseQuizDialog";
 
 interface Resource {
   platform: string;
@@ -39,20 +40,22 @@ interface Assignment {
   reason: string | null;
   status: Status;
   progressPercent: number;
+  /** The quiz that unlocks the next progress step; null once complete. */
+  nextQuiz: {
+    stage: 1 | 2;
+    label: string;
+    questionCount: number;
+    passPercent: number;
+    progressOnPass: number;
+    lastScore: number | null;
+    retryAt: string | null;
+  } | null;
   keywords: string[];
   atsBoost: number;
   /** null = started by the student from their test results' recommendations. */
   assignedBy: string | null;
   createdAt: string;
 }
-
-// Mirrors backend/src/lib/courseProgress.ts's statusForProgress().
-function statusForProgress(percent: number): Status {
-  if (percent >= 100) return "completed";
-  return percent > 0 ? "in_progress" : "assigned";
-}
-
-const SAVE_DELAY_MS = 500;
 
 const PRIORITY_DOT: Record<string, string> = {
   high: "bg-coral",
@@ -73,61 +76,26 @@ function MetaChip({ children, icon }: { children: ReactNode; icon?: ReactNode })
   );
 }
 
-/** Drag to report how far through the course you are. Saves shortly after
- * you stop moving it, rather than on every step. */
-function ProgressControl({
-  value,
-  title,
-  onChange,
-}: {
-  value: number;
-  title: string;
-  onChange: (percent: number) => void;
-}) {
-  const [draft, setDraft] = useState(value);
-  const pending = useRef<number | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
-
-  useEffect(() => {
-    if (pending.current === null) setDraft(value);
-  }, [value]);
-
-  // Leaving the page mid-drag still saves the last position.
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current);
-      if (pending.current !== null) onChangeRef.current(pending.current);
-    },
-    []
-  );
-
-  function update(next: number) {
-    setDraft(next);
-    pending.current = next;
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      pending.current = null;
-      onChangeRef.current(next);
-    }, SAVE_DELAY_MS);
-  }
-
-  const done = draft >= 100;
+/** Read-only progress: 0% -> 50% -> 100%, each step earned by passing a quiz. */
+function ProgressSteps({ value }: { value: number }) {
+  const done = value >= 100;
   return (
     <div className="flex items-center gap-2.5 w-full sm:w-[240px] flex-none">
-      <input
-        type="range"
-        min={0}
-        max={100}
-        step={5}
-        value={draft}
-        onChange={(e) => update(Number(e.target.value))}
-        aria-label={`Progress on ${title}`}
-        aria-valuetext={`${draft}% complete`}
-        className={`flex-1 h-1.5 cursor-pointer ${done ? "accent-teal" : "accent-lime"}`}
-      />
+      <div className="flex-1 flex items-center gap-1" aria-hidden="true">
+        {[50, 100].map((step) => (
+          <span
+            key={step}
+            className={`h-1.5 flex-1 rounded-full ${
+              value >= step ? (done ? "bg-teal" : "bg-lime") : "bg-card-2"
+            }`}
+          />
+        ))}
+      </div>
       <span
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={value}
         className={`w-[52px] text-right font-mono text-xs font-semibold ${done ? "text-teal" : "text-text"}`}
       >
         {done ? (
@@ -135,19 +103,54 @@ function ProgressControl({
             <CheckIcon width={11} height={11} strokeWidth={3} /> 100%
           </span>
         ) : (
-          `${draft}%`
+          `${value}%`
         )}
       </span>
     </div>
   );
 }
 
+function QuizAction({ assignment: a, onStart }: { assignment: Assignment; onStart: () => void }) {
+  const [now, setNow] = useState(() => Date.now());
+  const q = a.nextQuiz;
+  const retryMs = q?.retryAt ? new Date(q.retryAt).getTime() - now : 0;
+
+  // Re-render when the retry wait runs out so the button unlocks by itself.
+  useEffect(() => {
+    if (retryMs <= 0) return;
+    const t = setTimeout(() => setNow(Date.now()), Math.min(retryMs, 30_000) + 50);
+    return () => clearTimeout(t);
+  }, [retryMs, now]);
+
+  if (!q) return null;
+  const waiting = retryMs > 0;
+  return (
+    <span className="inline-flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        className="btn btn-small inline-flex items-center gap-1.5 disabled:opacity-60"
+        onClick={onStart}
+        disabled={waiting}
+        title={`${q.questionCount} questions · pass ${q.passPercent}% to reach ${q.progressOnPass}%`}
+      >
+        <SparkIcon width={12} height={12} />
+        {q.stage === 1 ? "Take checkpoint quiz" : "Take final quiz"}
+      </button>
+      <span className="text-text-3 text-xs">
+        {waiting
+          ? `Retry in ${Math.ceil(retryMs / 60000)} min${q.lastScore !== null ? ` · last score ${q.lastScore}%` : ""}`
+          : `${q.questionCount} questions · pass ${q.passPercent}% → ${q.progressOnPass}%`}
+      </span>
+    </span>
+  );
+}
+
 function AssignmentRow({
   assignment: a,
-  onProgress,
+  onStartQuiz,
 }: {
   assignment: Assignment;
-  onProgress: (a: Assignment, percent: number) => void;
+  onStartQuiz: (a: Assignment) => void;
 }) {
   const done = a.status === "completed";
   const primary = a.resources.find((r) => r.title);
@@ -163,11 +166,7 @@ function AssignmentRow({
           </h2>
           <AtsBoostBadge points={a.atsBoost} keywords={a.keywords} />
         </div>
-        <ProgressControl
-          value={a.progressPercent}
-          title={a.title}
-          onChange={(percent) => onProgress(a, percent)}
-        />
+        <ProgressSteps value={a.progressPercent} />
       </div>
 
       <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-text-2">
@@ -210,6 +209,7 @@ function AssignmentRow({
             <ProviderBadge provider={primary.platform} />
           </>
         )}
+        <QuizAction assignment={a} onStart={() => onStartQuiz(a)} />
         {others.length > 0 && (
           <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
             <span className="text-text-3">{primary ? "Also on" : "Find it on"}</span>
@@ -257,21 +257,7 @@ export default function MyAssignmentsPage() {
 
   useEffect(load, []);
 
-  async function changeProgress(a: Assignment, percent: number) {
-    setAssignments(
-      (prev) =>
-        prev?.map((x) =>
-          x.id === a.id
-            ? { ...x, progressPercent: percent, status: statusForProgress(percent) }
-            : x
-        ) ?? null
-    );
-    try {
-      await api.patch(`/api/assignments/${a.id}`, { progressPercent: percent });
-    } catch {
-      load();
-    }
-  }
+  const [quizFor, setQuizFor] = useState<Assignment | null>(null);
 
   const stats = useMemo(() => {
     const list = assignments ?? [];
@@ -394,9 +380,18 @@ export default function MyAssignmentsPage() {
       ) : (
         <ul className="card !p-0 overflow-hidden divide-y divide-border">
           {visible.map((a) => (
-            <AssignmentRow key={a.id} assignment={a} onProgress={changeProgress} />
+            <AssignmentRow key={a.id} assignment={a} onStartQuiz={setQuizFor} />
           ))}
         </ul>
+      )}
+
+      {quizFor && (
+        <CourseQuizDialog
+          assignmentId={quizFor.id}
+          courseTitle={quizFor.title}
+          onClose={() => setQuizFor(null)}
+          onGraded={load}
+        />
       )}
     </div>
   );

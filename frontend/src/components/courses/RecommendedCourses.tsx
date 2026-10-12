@@ -95,7 +95,7 @@ function ModuleRow({
               <Link
                 to="/assignments"
                 className="flex items-center gap-2.5 text-xs text-text-2 no-underline hover:text-lime"
-                title="Update your progress in My assignments"
+                title="Pass the course quizzes in My assignments to move your progress"
               >
                 <ProgressBar percent={m.enrollment.progressPercent} className="w-[110px]" />
                 <span className="font-mono">{m.enrollment.progressPercent}%</span>

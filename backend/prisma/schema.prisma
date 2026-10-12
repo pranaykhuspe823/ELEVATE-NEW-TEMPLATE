@@ -378,12 +378,34 @@ model CourseAssignment {
   resourcesJson  String    @default("[]")
   reason         String? // faculty's note on why this was assigned
   status         String    @default("assigned") // assigned | in_progress | completed
-  // 0-100, reported by the student (courses live on external sites, so there's
-  // nothing to measure it from). Kept in step with status.
+  // 0 / 50 / 100, earned by passing the checkpoint and final quizzes (see
+  // CourseQuiz) -- students can't set it directly. Faculty can still set the
+  // status by hand. Kept in step with status.
   progressPercent Int      @default(0)
   keywordsJson   String    @default("[]") // ATS keywords missing from the resume that this course teaches (JSON string[])
   createdAt      DateTime  @default(now())
   completedAt    DateTime?
 
+  quizzes CourseQuiz[]
+
   @@map("course_assignments")
+}
+
+// A quiz that gates a course's progress: passing stage 1 (checkpoint) moves
+// it to 50%, passing stage 2 (final) to 100%. Questions are AI-generated on
+// the course's topic; answers never leave the server (graded on submit).
+model CourseQuiz {
+  id            String           @id @default(uuid())
+  assignmentId  String
+  assignment    CourseAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  stage         Int // 1 = checkpoint (-> 50%), 2 = final (-> 100%)
+  questionsJson String // [{question, options[4], correctIndex, explanation}]
+  answersJson   String? // student's chosen option indexes, set on submit
+  score         Int? // 0-100, set on submit
+  passed        Boolean?
+  createdAt     DateTime         @default(now())
+  submittedAt   DateTime?
+
+  @@index([assignmentId, stage])
+  @@map("course_quizzes")
 }

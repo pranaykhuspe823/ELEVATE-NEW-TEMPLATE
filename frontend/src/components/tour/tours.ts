@@ -44,7 +44,7 @@ export const TOURS: Record<AuthUser["role"], Tour> = {
       {
         target: "nav:/assignments",
         title: "Your courses",
-        body: "After the skill test you get recommended courses, each showing how much it can raise your ATS score. Start them, update your progress here, and your faculty sees it too.",
+        body: "After the skill test you get recommended courses, each showing how much it can raise your ATS score. Start them, pass each course's checkpoint and final quizzes here to move it to 50% and 100%, and your faculty sees it too.",
       },
       {
         target: "nav:/drives",
