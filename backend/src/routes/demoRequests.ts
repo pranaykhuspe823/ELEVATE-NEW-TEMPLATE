@@ -49,7 +49,11 @@ demoRequestsRouter.post("/", async (req, res) => {
     },
   });
 
-  notifyDemoRequest(demoRequest).catch(() => {});
+  // The lead is already saved, so a mail failure doesn't fail the request --
+  // but log it so a broken SMTP setup doesn't go unnoticed.
+  notifyDemoRequest(demoRequest).catch((err) =>
+    console.error(`[mailer] demo request ${demoRequest.id} not emailed:`, err)
+  );
 
   res.status(201).json({ ok: true });
 });

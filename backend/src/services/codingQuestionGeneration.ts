@@ -3,7 +3,6 @@ import { z } from "zod";
 import { generateStructured } from "../lib/llm";
 import { runInSandbox } from "./codeSandbox";
 import {
-  CODING_DIFFICULTIES,
   CODING_LANGUAGES,
   CodingQuestionSchema,
 } from "../schemas/codingQuestion";
@@ -15,9 +14,9 @@ import type {
 
 const DIFFICULTY_GUIDANCE: Record<CodingDifficulty, string> = {
   easy:
-    "EASY difficulty: solvable with basic loops, conditionals, and simple array/string operations. A competent candidate should solve it in about 5-10 minutes. No advanced data structures or algorithms required.",
+    "EASY difficulty: solvable with basic loops, conditionals, and simple array/string operations. A college student who has done an intro programming course should solve it in about 5-10 minutes. No advanced data structures or algorithms required, no tricky edge cases.",
   medium:
-    "MEDIUM difficulty: requires a non-trivial technique such as a hash map, two pointers, sorting, or basic recursion. Should take a competent candidate about 15-20 minutes.",
+    "MEDIUM (beginner-friendly) difficulty: needs one common technique such as a hash map / dictionary, sorting, or two pointers -- nothing more. The problem statement should make the approach reasonably clear. A college student should solve it in about 10-15 minutes. No dynamic programming, graphs, trees or recursion.",
   hard:
     "HARD difficulty: requires a more advanced technique such as dynamic programming, graph/tree traversal, or backtracking. Should take a competent candidate about 25-30 minutes.",
 };
@@ -203,9 +202,14 @@ async function generateWithRetry(
   return null;
 }
 
-/** Generates exactly one problem per difficulty tier (easy, medium, hard). A
- * tier can come back missing if generation/validation fails on every attempt
- * -- callers should treat 2-3 results as a valid outcome, not exactly 3,
+/** The skill test is meant to build students' confidence, so it's two easy
+ * problems and one beginner-friendly medium -- no "hard" tier (that level
+ * still exists in CODING_DIFFICULTIES so older tests keep displaying). */
+const TEST_DIFFICULTY_MIX: CodingDifficulty[] = ["easy", "easy", "medium"];
+
+/** Generates one problem per entry in TEST_DIFFICULTY_MIX. A problem can
+ * come back missing if generation/validation fails on every attempt --
+ * callers should treat 2-3 results as a valid outcome, not exactly 3,
  * since that's the realistic range given generation isn't 100% reliable. */
 export async function generateCodingQuestions(
   field: string,
@@ -213,7 +217,7 @@ export async function generateCodingQuestions(
   seniority: string
 ): Promise<CodingQuestion[]> {
   const results = await Promise.allSettled(
-    CODING_DIFFICULTIES.map((difficulty) =>
+    TEST_DIFFICULTY_MIX.map((difficulty) =>
       generateWithRetry(field, skills, seniority, difficulty)
     )
   );

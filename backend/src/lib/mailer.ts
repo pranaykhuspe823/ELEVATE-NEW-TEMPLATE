@@ -84,6 +84,8 @@ export async function notifyDemoRequest(details: {
   await transport.sendMail({
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to,
+    // Hitting "Reply" in the support inbox answers the college directly.
+    replyTo: details.email,
     subject: `New demo request: ${details.company}`,
     text: [
       `Name: ${details.fullName}`,

@@ -20,6 +20,8 @@ interface ResumeSummary {
   uploadedAt: string;
   status: Status;
   processingError: string | null;
+  /** null = not checked yet (still processing, or uploaded before the check existed). */
+  plagiarism: { similarityPercent: number; flagged: boolean } | null;
   ats: {
     totalScore: number;
     formattingScore: number;
@@ -34,8 +36,8 @@ interface ResumeSummary {
 
 const STATUS_BADGE: Record<Status, { label: string; className: string }> = {
   ready: { label: "Analysed", className: "bg-teal/10 text-teal" },
-  processing: { label: "Analysing…", className: "bg-gold/10 text-gold" },
-  pending: { label: "Queued", className: "bg-gold/10 text-gold" },
+  processing: { label: "Analysing…", className: "bg-amber/10 text-amber" },
+  pending: { label: "Queued", className: "bg-amber/10 text-amber" },
   failed: { label: "Failed", className: "bg-coral/10 text-coral" },
 };
 
@@ -57,6 +59,28 @@ function SubScore({ label, value }: { label: string; value: number }) {
         <span className="text-text-3 text-[11px] font-normal">/25</span>
       </p>
     </div>
+  );
+}
+
+/** Same colour bands as the analysis page: flagged copy = red, 50%+ = amber, else green. */
+function PlagiarismChip({ plagiarism }: { plagiarism: NonNullable<ResumeSummary["plagiarism"]> }) {
+  const { similarityPercent: pct, flagged } = plagiarism;
+  const tone = flagged
+    ? "bg-coral/10 text-coral border-coral/30"
+    : pct >= 50
+    ? "bg-amber/10 text-amber border-amber/30"
+    : "bg-teal/10 text-teal border-teal/30";
+  return (
+    <span
+      className={`rounded-full border px-2.5 py-0.5 text-[12px] font-semibold ${tone}`}
+      title={
+        flagged
+          ? "This closely resembles another resume on file."
+          : "How similar this resume is to other resumes on file"
+      }
+    >
+      Plagiarism {pct}%{flagged && " · flagged"}
+    </span>
   );
 }
 
@@ -83,6 +107,15 @@ function ResumeRow({ resume, delta }: { resume: ResumeSummary; delta: number | n
             <span className={`rounded-full px-2.5 py-0.5 text-[12px] font-medium ${badge.className}`}>
               {badge.label}
             </span>
+            {resume.plagiarism ? (
+              <PlagiarismChip plagiarism={resume.plagiarism} />
+            ) : (
+              resume.status === "ready" && (
+                <span className="rounded-full border border-border px-2.5 py-0.5 text-[12px] text-text-3">
+                  Plagiarism not checked
+                </span>
+              )
+            )}
             {delta !== null && delta !== 0 && (
               <span
                 className={`rounded-full px-2.5 py-0.5 text-[12px] font-medium ${

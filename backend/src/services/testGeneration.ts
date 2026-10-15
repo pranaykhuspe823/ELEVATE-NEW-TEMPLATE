@@ -99,7 +99,7 @@ const TopicListSchema = z.object({
   topics: z.array(z.string()).min(3).max(4),
 });
 
-const TOPIC_LIST_SYSTEM_PROMPT = `You are designing a skill assessment for a job candidate. Based on their field, seniority, and skills, choose exactly 3-4 specific, testable topics the assessment should cover. Each topic should be narrow enough to write several distinct questions about (e.g. "Contract Negotiation" not just "Business"). Respond ONLY with JSON: {"topics": string[]}`;
+const TOPIC_LIST_SYSTEM_PROMPT = `You are designing a confidence-building skill check for a college student, based on the skills listed on their resume. Choose exactly 3-4 specific, testable topics drawn from the core, commonly used parts of their skills -- the fundamentals they are most likely to know, not niche or advanced areas. Each topic should be narrow enough to write several distinct questions about (e.g. "Python Lists and Dictionaries" not just "Python"). Respond ONLY with JSON: {"topics": string[]}`;
 
 async function generateTopics(
   field: string,
@@ -130,7 +130,12 @@ const TopicQuestionSetSchema = z.object({
 });
 
 function topicQuestionsSystemPrompt(topic: string): string {
-  return `You are writing multiple-choice skill assessment questions for the specific topic "${topic}". Write 4 multiple-choice questions testing real, practical knowledge a competent professional would need for this topic -- not trivia, not generic. Each question must have exactly 4 options with exactly one correct answer (correctIndex 0-3, zero-indexed). Respond ONLY with JSON: {"questions": [{"question": string, "options": [string, string, string, string], "correctIndex": number}]}`;
+  return `You are writing multiple-choice questions for a college student on the topic "${topic}". The goal is to build their confidence, so keep the level EASY to MEDIUM: write 4 questions -- 2 easy (basic definitions, what a common tool/feature does, simple usage) and 2 medium (applying a concept to a short, everyday scenario). Rules:
+- Test practical understanding of fundamentals, not trivia, version-specific details, or rare edge cases.
+- Keep each question short and clearly worded, with no trick wording or double negatives.
+- Exactly 4 options with exactly one clearly correct answer; the wrong options should be plausible but clearly wrong to someone who knows the basics. No "all of the above" / "none of the above".
+- correctIndex is 0-3 (zero-indexed); vary which position is correct.
+Respond ONLY with JSON: {"questions": [{"question": string, "options": [string, string, string, string], "correctIndex": number}]}`;
 }
 
 async function generateQuestionsForTopic(

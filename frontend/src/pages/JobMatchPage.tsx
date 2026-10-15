@@ -41,7 +41,7 @@ interface MatchResult {
 
 const FIT_BADGE: Record<Fit, { label: string; className: string }> = {
   strong: { label: "Strong fit", className: "bg-teal/10 text-teal border-teal/25" },
-  medium: { label: "Medium fit", className: "bg-gold/10 text-gold border-gold/25" },
+  medium: { label: "Medium fit", className: "bg-amber/10 text-amber border-amber/25" },
   low: { label: "Low fit", className: "bg-coral/10 text-coral border-coral/25" },
 };
 

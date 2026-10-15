@@ -96,7 +96,8 @@ resumesRouter.post("/upload", requireFacultyLink, (req, res) => {
 });
 
 /** The signed-in user's resume history, newest first, with the latest ATS
- * score and detected field of each. */
+ * score, detected field and plagiarism similarity of each. Like
+ * /:id/plagiarism, only the percentage and flag -- never who it matches. */
 resumesRouter.get("/", async (req, res) => {
   const resumes = await prisma.resume.findMany({
     where: { userId: req.user!.id },
@@ -107,6 +108,7 @@ resumesRouter.get("/", async (req, res) => {
       uploadedAt: true,
       status: true,
       processingError: true,
+      plagiarismScore: true,
       atsScores: {
         orderBy: { createdAt: "desc" },
         take: 1,
@@ -123,7 +125,14 @@ resumesRouter.get("/", async (req, res) => {
         take: 1,
         select: { detectedField: true, seniority: true },
       },
-      _count: { select: { tests: true, interviews: true } },
+      _count: {
+        select: {
+          tests: true,
+          interviews: true,
+          // Matches a faculty member has cleared as false positives no longer flag.
+          plagiarismChecksAsSource: { where: { reviewStatus: { not: "cleared" } } },
+        },
+      },
     },
   });
   res.json({
@@ -133,6 +142,15 @@ resumesRouter.get("/", async (req, res) => {
       uploadedAt: r.uploadedAt,
       status: r.status,
       processingError: r.processingError,
+      plagiarism:
+        r.plagiarismScore === null
+          ? null
+          : {
+              similarityPercent: Math.round(r.plagiarismScore * 100),
+              flagged:
+                r.plagiarismScore >= PLAGIARISM_SIMILARITY_THRESHOLD &&
+                r._count.plagiarismChecksAsSource > 0,
+            },
       ats: r.atsScores[0] ?? null,
       field: r.analyses[0] ?? null,
       testCount: r._count.tests,
