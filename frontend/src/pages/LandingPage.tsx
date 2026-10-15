@@ -9,11 +9,11 @@ import { useAuth, type AuthUser } from "../lib/auth";
 /* Shared bits                                                         */
 /* ------------------------------------------------------------------ */
 
-/** Same crop as components/BrandLogo, without relying on Tailwind. */
+/** Same image as components/BrandLogo, without relying on Tailwind. */
 function Logo({ height = 44 }: { height?: number }) {
   return (
-    <span className="lp-logo" style={{ height, width: (height * 882) / 264 }}>
-      <img src="/newlogo.png" alt="Core5 Elevate" draggable={false} />
+    <span className="lp-logo" style={{ height, width: (height * 1379) / 379 }}>
+      <img src="/elevate-logo.png" alt="Elevate – AI for Education" draggable={false} />
     </span>
   );
 }
